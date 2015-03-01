@@ -1,0 +1,34 @@
+/node_modules
+/build
+/dist
+
+*.log
+.sass-cache
+
+# vim gitignore
+.*.s[a-w][a-z]
+*.un~
+Session.vim
+.netrwhist
+*~
+
+# MAC OSX extension
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+
+# Thumbnails
+._*
+
+# Files that might appear on external disk
+.Spotlight-V100
+.Trashes
+
+.tags
+*.sublime-project
+*.sublime-workspace
+
+# phpstorm IDE ignore files
+.idea/
+*.7z
