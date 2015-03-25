@@ -26,7 +26,7 @@ server.exchange 'token', oauth2orize.exchange.clientCredentials (userInfo, scope
   createAccessToken = (user) ->
     if not user then return Q.reject(new Error('null user received'))
 
-    AccessToken.newToken(user.id)
+    AccessToken.newToken(user)
       .then (token) -> done null, token
 
 

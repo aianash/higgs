@@ -1,7 +1,7 @@
 request = require 'request'
 
 loginData =
-  facebook_token: 'CAACEdEose0cBAPh6RIIwnv5BS4YGa2wMIYIJZCJVvKwzr2MVYoZCyKxkfDRVvuMVZB1KKP0ZAwCjuMZAxhdZCpyS5ZAFFqvSEUjks5AfqD7ZCBwGnCpA3acYENlffW5ysJitR153PNxqiPqpzXYFPh32wq6WZABRZCcMvZCa3APqTnZAJ0aq8E3t3xxsJi5hwWWWSrnozCvkSvLHUBlP5BCepWoRZAqLGU1EQUtPVHEjZCjKgzZCwZDZD'
+  facebook_token: 'CAACEdEose0cBADpJYlWwAmOLxSr1pIFh5694PuRz83ZBDfZBOFCm336PMK07PZCkWZBJSqvE5IvL4jbGG4nvdLZAbLdoNrc1AtHtijXViuaT6vQ4ven1PI6BJCPbrRaOblL54AI9MOV61uPgJR4WZCQSv9YGYUgs7rIMSDcVZBJvJDivuevCUhizW5ZAgcZCKVAE9415N2WPTk6kvJeBqURhqa4CAuhFLVZCjaimJRqTrKJAZDZD'
   client_secret: 'boseeinsteincondensate'
   client_id: '918273645'
   fbuid: '10203676044758492'
@@ -18,10 +18,13 @@ request.post postReq, (err, res, body) ->
   console.log "\n\n\nBODY"
   console.log body
 
+  wrongAccessToken = body.access_token
+  wrongAccessToken = wrongAccessToken.substr(0, wrongAccessToken.length - 1) + 'B'
+
   # Use the access Token to get plans (API)
   request.get 'http://higgs.com:8080/apiv1/plans/get',
     auth:
-      bearer: body.access_token
+      bearer: wrongAccessToken
     ,(err, res, body) ->
       console.log body
 

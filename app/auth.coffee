@@ -24,8 +24,8 @@ passport.use new HiggsFBStrategy()
 # based on higgs accessToken
 passport.use new BearerStrategy (accessToken, done) ->
 
-  AccessToken.getUserIdFor(accessToken)
-    .then (userId) -> User.for(userId)
+  AccessToken.getUserInfoFrom(accessToken)
+    .then (userInfo) -> User.for(userInfo)
     .then (user) ->
       if not user then Q.reject(new Error('user received null'))
       done(null, user)

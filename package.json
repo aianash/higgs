@@ -23,6 +23,7 @@
     "generic-pool": "~2.1.1",
     "hiredis": "~0.2.0",
     "jade": "~1.9.2",
+    "jsonwebtoken": "^4.2.1",
     "lru-cache": "^2.5.0",
     "mailchimp-api": "~2.0.7",
     "method-override": "^2.3.1",

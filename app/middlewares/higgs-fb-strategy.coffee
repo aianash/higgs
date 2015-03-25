@@ -35,7 +35,6 @@ class HiggsFBStrategy extends Strategy
 
     @name = 'higgsFB'
 
-    @_passReqToCallback = options._passReqToCallback
 
 
   # Actual authenticate method called by passport
@@ -53,7 +52,7 @@ class HiggsFBStrategy extends Strategy
 
     if !facebookToken || !clientId || !clientSecret || !fbuid
       return @fail(
-        message: options.badRequestMessage || 'Missing credentials', 400)
+        message: 'Missing credentials', 400)
 
 
     # Verify the passed credentials
@@ -83,7 +82,7 @@ class HiggsFBStrategy extends Strategy
             lastName:   result.last_name
             name:       result.name
             locale:     result.locale
-            location:   result.location
+            location:   result.location.name
             gender:     result.gender
             fbuid:      result.id
             email:      result.email
