@@ -1,14 +1,14 @@
-express       = require 'express'
-passport      = require 'passport'
-compress      = require 'compression'
-errorHandler  = require 'errorhandler'
-morgan        = require 'morgan'
-bodyParser    = require 'body-parser'
-methodOverride = require 'method-override'
+express         = require 'express'
+passport        = require 'passport'
+compress        = require 'compression'
+errorHandler    = require 'errorhandler'
+morgan          = require 'morgan'
+bodyParser      = require 'body-parser'
+methodOverride  = require 'method-override'
+winston         = require 'winston'
 
 settings      = require __dirname + '/settings'
 logger        = require __dirname + '/utils/logger'
-winston       = require 'winston'
 
 oauth2        = require __dirname + '/oauth2'
 
@@ -23,7 +23,6 @@ app.settings.env = env
 jsonParser = bodyParser.json()
 urlencodedParser = bodyParser.urlencoded(extended: true)
 
-# app.set 'port', port
 app.set 'showStackError', true
 
 app.enable 'case sensitive routing'
@@ -34,20 +33,40 @@ app.use methodOverride()
 app.use morgan('combined')
 app.use errorHandler()
 
-app.use passport.initialize()
-app.use passport.session()
 
 app.locals.title = 'Higgs'
 
-# Passport configurations
+
+
+### AUTHENTICATION SETUP ###
+
+# App uses passoport for authentication
+app.use passport.initialize()
+
+
+# Requiring auth file adds following authentication strategy
+# - Higgs FB Authentication strategy - used when client with FB accessToken
+#                requests for Higgs oAuth Token
+#
+# - Bearer startegy - used when client with Higgs accessToken calls APIs
+#
+# [For more detail on using authentication look into the file]
 require __dirname + '/auth'
 
+
+# App usese this endpoint to get a Higgs token
+# which is passed with further API requests requiring
+# authentication
 app.post  '/oauth/token', jsonParser, oauth2.token
 
 
-# Add api routes file name from the routes directory
-# [only those that needs authentication]
+
+
+
+# API routes to be added to the app
+# [All those will needs authentication]
 apiRoutes = ['plan']
+
 
 for route in apiRoutes
   require(__dirname + "/routes/#{route}")(app)
