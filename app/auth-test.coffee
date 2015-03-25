@@ -1,11 +1,10 @@
 request = require 'request'
 
 loginData =
-  facebookToken: '234sdsaf'
-  appSecret: 'asasdf'
-  fbuid: 'kumar.ishan4'
-  username: 'ishan'
-  grant_type: 'token'
+  facebook_token: '234sdsaf'
+  app_secret: 'boseeinsteincondensate'
+  app_id: '918273645'
+  fbuid: '10203676044758492'
 
 
 postReq =

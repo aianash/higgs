@@ -1,4 +1,13 @@
 Strategy = require 'passport-strategy'
+FB       = require 'fb'
+
+settings   = require __dirname + '/../settings'
+ClientApps = require __dirname + '/../models/client-apps'
+
+FB.options
+  appId    : settings.get('facebook:appId')
+  appSecret: settings.get('facebook:appSecret')
+
 
 ###
 HiggsFBStrategy
@@ -16,8 +25,9 @@ class HiggsFBStrategy extends Strategy
 
     options = options || {}
 
-    @_facebookTokenField = options.facebookTokenField || 'facebookToken'
-    @_appSecretField     = options.appSecretField     || 'appSecret'
+    @_facebookTokenField = options.facebookTokenField || 'facebook_token'
+    @_clientIdField      = options.clientIdField      || 'client_id'
+    @_clientSecretField  = options.clientSecretField  || 'client_secret'
     @_fbuidField         = options.fbuidField         || 'fbuid'
     @_usernameField      = options.usernameField      || 'username'
 
@@ -33,36 +43,54 @@ class HiggsFBStrategy extends Strategy
   authenticate: (req, options) ->
     options = options || {}
 
-    # console.log req
-    # console.log 'inside authenticate'
-    # console.log req.body
-
     facebookToken = req.body[@_facebookTokenField]
-    appSecret     = req.body[@_appSecretField]
-    username      = req.body[@_usernameField]
     fbuid         = req.body[@_fbuidField]
 
-    if !facebookToken || !appSecret || !fbuid
+    # clientInfo to identify Higgs client
+    clientId         = req.body[@_clientIdField]
+    clientSecret     = req.body[@_clientSecretField]
+
+
+    if !facebookToken || !clientId || !clientSecret || !fbuid
       return @fail(
         message: options.badRequestMessage || 'Missing credentials', 400)
 
-    console.log 'verifying facebook token'
 
     # Verify the passed credentials
-    # 1. Verify if Facebook accessToken is valid
-    # 2. Verify if identified FB user is associated with username in Higgs
-    # 3. Verify app using appSecret
+    # 1. Verify client using appSecret
+    # 2. Verify if Facebook accessToken is valid
     #
     # Once verified return information to be stored
     # for the user.
-    user =
-      username: username
-      id: '02092klkskk'
-      fbAccessToken: '90290290290kjskjlskjlskljs'
-      fbuid: 'kumar.ishan4'
+    ClientApps.verify({clientId, clientSecret})
+      .then (verified) =>
+        if not verified then return @fail(message: 'Unrecognized app', 400)
+
+        parameters =
+          access_token: facebookToken
+
+        FB.api '/me', 'get', parameters, (result) =>
+          if !result || result.error || not result.verified
+            return @fail(message: 'Facebook access token not authorized', 400)
+
+          if result.id isnt fbuid
+            return @fail(message: 'Invalid access token for the user with id ' + fbuid, 400)
+
+          # User info that will be used to create/update user account
+          # with higgs
+          userInfo =
+            firstName:  result.first_name
+            lastName:   result.last_name
+            name:       result.name
+            locale:     result.locale
+            location:   result.location
+            gender:     result.gender
+            fbuid:      result.id
+            email:      result.email
+            timezone:   result.timezone
 
 
-    @success user, scope: '*'
+          @success userInfo, scope: '*'
 
 
 module.exports = HiggsFBStrategy
