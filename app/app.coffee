@@ -1,50 +1,72 @@
-express       = require 'express'
-compress      = require 'compression'
-errorHandler  = require 'errorhandler'
-morgan        = require 'morgan'
-bodyParser    = require 'body-parser'
-methodOverride = require 'method-override'
+express         = require 'express'
+passport        = require 'passport'
+compress        = require 'compression'
+errorHandler    = require 'errorhandler'
+morgan          = require 'morgan'
+bodyParser      = require 'body-parser'
+methodOverride  = require 'method-override'
+winston         = require 'winston'
 
 settings      = require __dirname + '/settings'
 logger        = require __dirname + '/utils/logger'
-winston       = require 'winston'
+
+oauth2        = require __dirname + '/oauth2'
 
 
 env = settings.get('NODE_ENV')
-p
-ort = settings.get('server:port')
+port = settings.get('server:port')
 host = settings.get('server:host')
 
 app = express()
 app.settings.env = env
 
-# app.set 'port', port
+jsonParser = bodyParser.json()
+urlencodedParser = bodyParser.urlencoded(extended: true)
+
 app.set 'showStackError', true
 
 app.enable 'case sensitive routing'
 app.enable 'strict routing'
 
 app.use compress()
-
-jsonParser = bodyParser.json()
-urlencodedParser = bodyParser.urlencoded(extended: true)
-
 app.use methodOverride()
-
-app.locals.title = 'Higgs'
 app.use morgan('combined')
 app.use errorHandler()
 
 
+app.locals.title = 'Higgs'
 
-# Add api routes file name from the routes directory
-# [only those that needs authentication]
+
+
+### AUTHENTICATION SETUP ###
+
+# App uses passoport for authentication
+app.use passport.initialize()
+
+
+# Requiring auth file adds following authentication strategy
+# - Higgs FB Authentication strategy - used when client with FB accessToken
+#                requests for Higgs oAuth Token
+#
+# - Bearer startegy - used when client with Higgs accessToken calls APIs
+#
+# [For more detail on using authentication look into the file]
+require __dirname + '/auth'
+
+
+# App usese this endpoint to get a Higgs token
+# which is passed with further API requests requiring
+# authentication
+app.post  '/oauth/token', jsonParser, oauth2.token
+
+
+
+
+
+# API routes to be added to the app
+# [All those will needs authentication]
 apiRoutes = ['plan']
 
-ensureAuthenticated = (req, res, next) ->
-  next() # [TO DO] check if authenticated
-
-app.all '*', ensureAuthenticated
 
 for route in apiRoutes
   require(__dirname + "/routes/#{route}")(app)
