@@ -10,6 +10,7 @@ var streamqueue = require('streamqueue');
 var runSequence = require('run-sequence');
 var merge = require('merge-stream');
 var coffee = require('gulp-coffee');
+var thrift = require('gulp-thrift');
 var coffeelint = require('gulp-coffeelint');
 var nodemon = require('gulp-nodemon');
 
@@ -43,6 +44,7 @@ gulp.task('clean', function(done) {
   del([targetDir], done);
 });
 
+
 // lint coffeescript
 gulp.task('coffeelint', function() {
 	gulp.src(['app.coffee', '**/*.coffee'], {cwd: 'app'})
@@ -51,12 +53,22 @@ gulp.task('coffeelint', function() {
 			.on('error', errorHandler);
 });
 
+
 // compile coffeescript and copy them.
 gulp.task('compile', function() {
   return gulp
     .src(['**/*.coffee'], { cwd: 'app' })
     .pipe(coffee({bare: false}))
     .pipe(gulp.dest(targetDir))
+    .on('error', errorHandler);
+});
+
+
+gulp.task('thrift-compile', function() {
+  return gulp
+    .src(['**/*.thrift'], {cwd: 'app'})
+    .pipe(thrift({gen: 'js:node'}))
+    .pipe(gulp.dest(path.join(targetDir, 'lib')))
     .on('error', errorHandler);
 });
 
@@ -92,8 +104,9 @@ gulp.task('default', function(done){
 		[
 			'coffeelint',
 			'compile',
-      'config'
+      'config',
+      'thrift-compile'
 		],
-		release ? 'noop' : 'develop',
+		// release ? 'noop' : 'develop',
     done);
 });

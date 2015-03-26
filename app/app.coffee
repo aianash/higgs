@@ -65,11 +65,15 @@ app.post  '/oauth/token', jsonParser, oauth2.token
 
 # API routes to be added to the app
 # [All those will needs authentication]
-apiRoutes = ['plan']
+apiRoutes = ['shopplan']
 
+apiVersion = settings.get('api:version')
+
+apiPrefix = '/apiv' + apiVersion
 
 for route in apiRoutes
-  require(__dirname + "/routes/#{route}")(app)
+  router = require(__dirname + "/routes/#{route}")
+  app.use(apiPrefix, router)
 
 
 server = app.listen port, host, ->

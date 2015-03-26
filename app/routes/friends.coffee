@@ -15,4 +15,5 @@ module.exports = (app) ->
 
   Plans = require controller_path + '/plans'
 
-  app.get '/apiv1/plans/get', urlencodedParser, Plans.getUserPlans
+  app.get '/apiv1/friends/get', urlencodedParser, Plans.getUserPlans
+  app.get
