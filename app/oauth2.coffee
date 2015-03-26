@@ -4,8 +4,8 @@ passport    = require 'passport'
 login       = require 'connect-ensure-login'
 winston     = require 'winston'
 
-User        = require __dirname + '/models/user'
-AccessToken = require __dirname + '/models/access-token'
+User        = require __dirname + '/dataaccess/user'
+AccessToken = require __dirname + '/dataaccess/access-token'
 logger      = require __dirname + '/utils/logger'
 
 # Create OAuth 2.0 server

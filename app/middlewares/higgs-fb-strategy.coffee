@@ -1,8 +1,9 @@
+path     = require 'path'
 Strategy = require 'passport-strategy'
 FB       = require 'fb'
 
-settings   = require __dirname + '/../settings'
-ClientApps = require __dirname + '/../models/client-apps'
+settings   = require path.join(__dirname, '../settings')
+ClientApps = require path.join(__dirname, '../dataaccess/client-apps')
 
 FB.options
   appId    : settings.get('facebook:appId')

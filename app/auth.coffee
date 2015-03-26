@@ -5,8 +5,8 @@ winston  = require 'winston'
 BearerStrategy  = require('passport-http-bearer').Strategy
 HiggsFBStrategy = require __dirname + '/middlewares/higgs-fb-strategy'
 
-AccessToken = require __dirname + '/models/access-token'
-User        = require __dirname + '/models/user'
+AccessToken = require __dirname + '/dataaccess/access-token'
+User        = require __dirname + '/dataaccess/user'
 
 logger = require __dirname + '/utils/logger'
 

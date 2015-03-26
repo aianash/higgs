@@ -3,6 +3,9 @@
     "port": 8080,
     "host": "higgs.com"
   },
+  "api": {
+    "version": "1"
+  },
   "facebook": {
     "appSecret": "b59466a3500f21168131758c3dba4ce1",
     "appId": "800587516688651"
