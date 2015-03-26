@@ -5,6 +5,9 @@ common_ttypes   = require path.join(__dirname, '../lib/common_types')
 neutrino_ttypes = require path.join(__dirname, '../lib/neutrino_types')
 shopplan_ttypes = require path.join(__dirname, '../lib/shopplan_types')
 
+module.exports.all = (userId) ->
+  Q({})
+
 
 module.exports.get = (userId, planId) ->
   uuid = userId
@@ -53,3 +56,9 @@ module.exports.get = (userId, planId) ->
   plan = new neutrino.shopplan.ShopPlan({shopplanId, title, destinations, friends})
 
   Q(plan)
+
+
+module.exports.update = (userId, planId, updates) ->
+  console.log "Updating"
+  console.log updates
+  Q(true)
