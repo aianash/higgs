@@ -10,7 +10,18 @@ typedef string AddressShort
 typedef string AddressFull
 typedef double Latitude
 typedef double Longitude
+typedef string Email
+typedef string Timezone
 
+
+enum Locale {
+  EN_US = 1;
+}
+
+enum Gender {
+  FEMALE = 1;
+  MALE = 2;
+}
 
 enum UserIdType {
   FB = 1;

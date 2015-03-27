@@ -92,6 +92,7 @@ class HiggsFBStrategy extends Strategy
             location:   result.location.name
             gender:     result.gender
             fbuid:      result.id
+            fbToken:    facebookToken
             email:      result.email
             timezone:   result.timezone
 
