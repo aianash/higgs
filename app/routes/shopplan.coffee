@@ -13,13 +13,15 @@ Piggyback       = require path.join(__dirname, '../middlewares/piggyback')
 
 router = express.Router()
 
-plans = require controller_path + '/shopplan'
+shopplan = require controller_path + '/shopplan'
 
 jsonParser = bodyParser.json()
 
-Piggyback.register('GET',  '/shopplan/all',             plans.getUserPlans)   .in(router)
-Piggyback.register('GET',  '/shopplan/:planId/detail',  plans.getShopPlan)    .in(router)
-Piggyback.register('POST', '/shopplan/:planId/update',  plans.updateShopPlan) .in(router)
-
+Piggyback.register('GET',  '/shopplan/all',                   shopplan.getUserPlans)      .in(router)
+Piggyback.register('GET',  '/shopplan/:planId/detail',        shopplan.getShopPlan)       .in(router)
+Piggyback.register('POST', '/shopplan/:planId/add',           shopplan.addToShopPlan)     .in(router)
+Piggyback.register('POST', '/shopplan/:planId/remove',        shopplan.removeFromShopPlan).in(router)
+Piggyback.register('POST', '/shopplan/:planId/end',           shopplan.endPlan)           .in(router)
+Piggyback.register('GET',  '/shopplan/:planId/map/locations', shopplan.mapLocations)      .in(router)
 
 module.exports = router

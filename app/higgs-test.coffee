@@ -7,7 +7,7 @@ FB.options
 
 
 loginData =
-  facebook_token: 'CAACEdEose0cBAMKbQ0Kv7GYHBjrOirLP5TtEEqQMFoE8lbkb7cJxZBidfcZCtfXEri8wxMIFgO7JLgFsSAZBFY4Jyb0pvxo0Kvk9aDaB3aPKZAykkgQfpYwiZC2AnydUimZB5H9nfPl9zQ9tY1n1RgoeH8S9H8HZCQkLZAzq1irYCGHdD5FdLf97YYkIGCjkygcsDyI3jy58EL0X9kkJsLFXGwKFG5cNpBxfvexERiBumgZDZD'
+  facebook_token: 'CAACEdEose0cBADrcF2YjemzvOXUUfEm2afL7ZBcJCZBZBftzgdz1qlRXIgkunVvuhVyxSdjd0804BbKiulbkbZBseiDvDBwgZApfq65frj5W7OirXmNyKYb0lGw3W280dWdAfAZB127fciWY0T4HCYQp7sED5OJeiAXtTRExmhJeP5jXZCHZAgZCUap5E1krGsDZBr8zDeZAM5YzTJNnbrTDBUOYRvyqNsFsJkl84GPEFukSwZDZD'
   client_secret: 'boseeinsteincondensate'
   client_id: '918273645'
   fbuid: '10203676044758492'
@@ -59,7 +59,7 @@ request.post postReq, (err, res, body) ->
       console.log "\n\nAll response"
       console.log body
 
-  updateData =
+  addData =
     stores: {
       1019928288899282: {
         collections: [92888289993829]
@@ -67,13 +67,13 @@ request.post postReq, (err, res, body) ->
     }
 
 
-  updateReq =
-    url: "#{prefix}shopplan/#{shopplanId}/update"
-    body: updateData
+  addReq =
+    url: "#{prefix}shopplan/#{shopplanId}/add"
+    body: addData
     json: true
     auth:
       bearer: accessToken
 
-  request.post updateReq, (err, res, body) ->
-    console.log "\n\nUpdate response"
+  request.post addReq, (err, res, body) ->
+    console.log "\n\nAdd response"
     console.log body

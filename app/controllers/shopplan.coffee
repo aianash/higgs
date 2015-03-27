@@ -19,8 +19,6 @@ da.ShopPlan     = require path.join(dataaccess_path, 'shopplan')
 
 
 getUserPlans = (req, res) ->
-  uuid = req.user.id
-
   da.ShopPlan.all(req.user.id)
     .then (plans) -> res.send plans
     .catch (err) ->
@@ -45,7 +43,8 @@ getShopPlan = (req, res) ->
     .done()
 
 
-updateShopPlan = (req, res) ->
+
+addToShopPlan = (req, res) ->
   da.ShopPlan.update(req.user.id, req.params.planId, req.body)
     .then (success) -> res.send success
     .catch (err) ->
@@ -58,6 +57,33 @@ updateShopPlan = (req, res) ->
 
 
 
-exports.updateShopPlan  = updateShopPlan
-exports.getShopPlan     = getShopPlan
-exports.getUserPlans    = getUserPlans
+endPlan = (req, res) ->
+  da.ShopPlan.end(req.user.id, req.params.planId)
+    .then (success) -> res.send success
+    .catch (err) ->
+      logger.log('error', 'Couldnt end the plan', err.message, winston.exception.getTrace(err))
+      res.send
+        error:
+          message: err.message
+          type: typeof err
+    .done()
+
+
+
+getMapLocations = (req, res) ->
+  # [TO IMPLEMENT]
+  res.send {message: "comming soon"}
+
+
+removeFromShopPlan = (req, res) ->
+  # [TO IMPLEMENT]
+  res.send {message: "comming soon"}
+
+
+
+exports.addToShopPlan       = addToShopPlan
+exports.removeFromShopPlan  = removeFromShopPlan
+exports.getShopPlan         = getShopPlan
+exports.getUserPlans        = getUserPlans
+exports.endPlan             = endPlan
+exports.mapLocations        = getMapLocations

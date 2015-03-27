@@ -64,8 +64,7 @@ app.post  '/oauth/token', jsonParser, oauth2.token
 
 
 # API routes to be added to the app
-# [All those will needs authentication]
-apiRoutes = ['shopplan']
+apiRoutes = ['shopplan', 'feeds', 'user']
 
 apiVersion = settings.get('api:version')
 
