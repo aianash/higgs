@@ -5,23 +5,33 @@ passport        = require 'passport'
 express         = require 'express'
 winston         = require 'winston'
 
-controller_path = __dirname + '/../controllers'
-
-settings        = require __dirname + '/../settings'
-logger          = require __dirname + '/../utils/logger'
+settings        = require path.join(__dirname, '../settings')
+logger          = require path.join(__dirname, '../utils/logger')
 Piggyback       = require path.join(__dirname, '../middlewares/piggyback')
 
-router = express.Router()
-
-shopplan = require controller_path + '/shopplan'
+# Controller
+shopplan        = require path.join(__dirname, '../controllers/shopplan')
 
 jsonParser = bodyParser.json()
 
-Piggyback.register('GET',  '/shopplan/all',                   shopplan.getUserPlans)      .in(router)
-Piggyback.register('GET',  '/shopplan/:planId/detail',        shopplan.getShopPlan)       .in(router)
-Piggyback.register('POST', '/shopplan/:planId/add',           shopplan.addToShopPlan)     .in(router)
-Piggyback.register('POST', '/shopplan/:planId/remove',        shopplan.removeFromShopPlan).in(router)
-Piggyback.register('POST', '/shopplan/:planId/end',           shopplan.endPlan)           .in(router)
-Piggyback.register('GET',  '/shopplan/:planId/map/locations', shopplan.mapLocations)      .in(router)
+router = express.Router()
+
+Piggyback.register('GET',     '/shopplan/all',                        shopplan.list)              .in(router)
+Piggyback.register('GET',     '/shopplan/new',                        shopplan.createNew)         .in(router)
+
+Piggyback.register('GET',     '/shopplan/:planId',                    shopplan.detail)            .in(router)
+Piggyback.register('POST',    '/shopplan/:planId',                    shopplan.add)               .in(router)
+Piggyback.register('DELETE',  '/shopplan/:planId',                    shopplan.remove)            .in(router)
+Piggyback.register('PUT',     '/shopplan/:planId/end',                shopplan.end)               .in(router)
+
+Piggyback.register('GET',     '/shopplan/:planId/invites',            shopplan.invites)           .in(router)
+
+Piggyback.register('GET',     '/shopplan/:planId/store/locations',    shopplan.storeLocations)    .in(router)
+
+Piggyback.register('GET',     '/shopplan/:planId/destinations',       shopplan.destinations)      .in(router)
+Piggyback.register('POST',    '/shopplan/:planId/destinations',       shopplan.addDestinations)   .in(router)
+Piggyback.register('PUT',     '/shopplan/:planId/destinations',       shopplan.updateDestinations).in(router)
+Piggyback.register('DELETE',  '/shopplan/:planId/destinations',       shopplan.removeDestinations).in(router)
+
 
 module.exports = router

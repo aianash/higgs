@@ -20,9 +20,9 @@ class User
   detail: ->
     unless @id then return Q.reject(new Error('this user object has empty id field'))
 
-    NeutrinoClient.get().then (client) =>
+    NeutrinoClient.get (client) =>
       client.q.getUserDetail(new common_ttypes.UserId(uuid: @id))
-        .finally -> NeutrinoClient.release client
+
 
 
 
@@ -55,7 +55,7 @@ exports.createOrUpdate = (userInfo) ->
   })
 
 
-  NeutrinoClient.get().then (client) ->
+  NeutrinoClient.get (client) ->
     client.q.createOrUpdateUser(req).then (userInfo) ->
       user = new User(
         id: userInfo.userId.uuid
@@ -63,7 +63,7 @@ exports.createOrUpdate = (userInfo) ->
       )
 
       Q.all [user, userInfo.isNew]
-    .finally -> NeutrinoClient.release client
+
 
 
 

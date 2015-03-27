@@ -1,64 +1,135 @@
 Q     = require 'q'
+_     = require 'lodash'
 path  = require 'path'
+
+NeutrinoClient  = require path.join(__dirname, '../lib/neutrino-client')
 
 common_ttypes   = require path.join(__dirname, '../lib/common_types')
 neutrino_ttypes = require path.join(__dirname, '../lib/neutrino_types')
 shopplan_ttypes = require path.join(__dirname, '../lib/shopplan_types')
 
-module.exports.all = (userId) ->
-  Q({})
+Id = require path.join(__dirname, '../utils/id')
 
 
-module.exports.get = (userId, planId) ->
-  uuid = userId
-  suid = planId
 
-  createdBy = new goshoplane.common.UserId({uuid})
-  shopplanId = new neutrino.shopplan.ShopPlanId({createdBy, suid})
+createModifyShopPlanReq = (modify) ->
+  _.defaults addition, stores: [], items: [], invites: []
 
+  {stores, items, invites} = addition
 
-  stuid = 10109288939399
-  storeId = new goshoplane.common.StoreId({stuid})
-  cuid = 19299920003
-  itemId = new goshoplane.common.CatalogueItemId({cuid, storeId})
+  stores  = _.map stores,  (stuid) -> Id.forStore stuid
+  items   = _.map items,   (item)  -> Id.forCatalogueItem item.stuid, item.cuid
+  invites = _.map invites, (uuid)  -> Id.forUser uuid
 
-  sid = 'clothing-id'
-  type = common_ttypes.SerializerType.MSGPCK
-  serializerId = new goshoplane.common.SerializerId({sid, type})
-
-  stream = 'serialized bytes of the item defination'
-  catalgoueItem = new goshoplane.common.SerializedCatalogueItem({itemId, serializerId, stream})
-
-  collection = [catalgoueItem]
-  name = 'levis showroom'
-  address = new goshoplane.common.PostalAddress({title: 'kormangla 6th cross'})
-  store = new neutrino.shopplan.Store({storeId, name, collection, address})
-  stores = [store]
+  new neutrino_ttypes.ModifyShopPlanReq {stores, items, invites}
 
 
-  duid = 9299388320000229
-  destId = new neutrino.shopplan.DestinationId({shopplanId, duid})
-  order = 1
-  destAddr = new goshoplane.common.PostalAddress({title: 'kormangla'})
-  destination = new neutrino.shopplan.Destination({destId, order, stores, address: destAddr})
-  destinations = [destination]
+
+### EXPOSED METHODS ###
 
 
-  id = 839200029299930
-  name = 'einstein'
-  avatar = 'https://imagizer.imageshack.us/148x163f/673/8QZyNs.jpg'
-  inviteStatus = shopplan_ttypes.InviteStatus.ACCEPTED
-
-  friend = new neutrino.shopplan.Friend({id, name, avatar, inviteStatus})
-  friends = [friend]
-
-  title = 'Shopping for party'
-  plan = new neutrino.shopplan.ShopPlan({shopplanId, title, destinations, friends})
-
-  Q(plan)
+module.exports.all = (uuid) ->
+  NeutrinoClient.get (client) ->
+    client.q.getShopPlansFor Id.forUser uuid
 
 
-module.exports.update = (userId, planId, updates) ->
-  console.log "Updating"
-  console.log updates
-  Q(true)
+
+module.exports.get = (uuid, suid) ->
+  NeutrinoClient.get (client) ->
+    client.q.getShopPlan Id.forShopPlan uuid, suid
+
+
+
+module.exports.new = (uuid) ->
+  NeutrinoClient.get (client) ->
+    client.q.newShopPlanFor Id.forUser uuid
+
+
+
+module.exports.end = (uuid, suid) ->
+  NeutrinoClient.get (client) ->
+    client.q.endShopPlan Id.forShopPlan uuid, suid
+
+
+
+module.exports.addToShopPlan = (uuid, suid, addition) ->
+  shopplanId = Id.forShopPlan uuid, suid
+  addReq = createModifyShopPlanReq addition
+
+  NeutrinoClient.get (client) ->
+    client.q.addToShopPlan shopplanId, addReq
+
+
+
+module.exports.removeFromShopPlan = (uuid, suid, removals) ->
+  shopplanId = Id.forShopPlan uuid, suid
+  removeReq = createModifyShopPlanReq removals
+
+  NeutrinoClient.get (client) ->
+    client.q.removeFromShopPlan shopplanId, removeReq
+
+
+
+module.exports.getInvitedUsers = (uuid, suid) ->
+  NeutrinoClient.get (client) ->
+    client.q.getInvitedUsers Id.forShopPlan uuid, suid
+
+
+
+module.exports.getStoreLocations = (uuid, suid) ->
+  NeutrinoClient.get (client) ->
+    client.q.getStoreLocations Id.forShopPlan uuid, suid
+
+
+
+module.exports.getDestinations = (uuid, suid) ->
+  NeutrinoClient.get (client) ->
+    client.q.getDestinations Id.forShopPlan uuid, suid
+
+
+
+module.exports.addDestinations = (uuid, suid, additions) ->
+  unless _.isArray additions then return Q.reject new TypeError('additions should be an array of addition for earch duid')
+
+  shopplanId = Id.forShopPlan uuid, suid
+
+  toAddReq = (addition) ->
+    {lat, lng, order} = addition
+    location = new common_ttypes.GPSLocation({lat, lng}) if lat and lng
+
+    new neutrino_ttypes.AddDestinationReq({location, order})
+
+  addReqs = _.map additions, toAddReq
+
+  NeutrinoClient.get (client) ->
+    client.q.addDestinations shopplanId, addReqs
+
+
+
+module.exports.updateDestinations = (uuid, suid, updates) ->
+  unless _.isArray updates then return Q.reject new TypeError('updates should be an array of updates for each duid')
+
+  toUpdateReq = (update) ->
+    destId = Id.forDestination uuid, suid, update.duid
+    {lat, lng, order} = update
+
+    location = new common_ttypes.GPSLocation({lat, lng}) if lat and lng
+
+    new neutrino_ttypes.UpdateDestinationReq({destId, location, order})
+
+
+  updateReqs = _.map updates, toUpdateReq
+
+  NeutrinoClient.get (client) ->
+    client.q.updateDestinations updateReqs
+
+
+
+module.exports.removeDestinations = (uuid, suid, duids) ->
+  unless _.isArray duids then return Q.reject new TypeError('duids should be an array of duid')
+
+  toDestinationId = _.partial Id.forDestination, uuid, suid
+  destIds = _.map duids, toDestinationId
+
+  NeutrinoClient.get (client) ->
+    client.q.removeDestinations destIds
