@@ -60,11 +60,21 @@ pool.acquireAsync = Q.nbind pool.acquire, pool
 
 
 
-# get a new client and use it
-module.exports.get = ->
+# get a new client's Promise and use it
+# Caller has to manually release the client
+# after use
+getP = module.exports.getP = ->
   pool.acquireAsync()
 
 
+# Here the caller doesnt need to
+# release the client, but has to
+# return (preferrably promise)
+get = module.exports.get = (fn) ->
+  getP().then (client) ->
+    Q(fn(client)).finally -> release client
+
+
 # releas the client back to pool once done
-module.exports.release = (client) ->
+release = module.exports.release = (client) ->
   pool.release(client)
