@@ -5,8 +5,9 @@ winston  = require 'winston'
 BearerStrategy  = require('passport-http-bearer').Strategy
 HiggsFBStrategy = require __dirname + '/middlewares/higgs-fb-strategy'
 
-AccessToken = require __dirname + '/models/access-token'
-User        = require __dirname + '/models/user'
+da = {} # namespacing
+da.AccessToken = require __dirname + '/dataaccess/access-token'
+da.User        = require __dirname + '/dataaccess/user'
 
 logger = require __dirname + '/utils/logger'
 
@@ -24,8 +25,8 @@ passport.use new HiggsFBStrategy()
 # based on higgs accessToken
 passport.use new BearerStrategy (accessToken, done) ->
 
-  AccessToken.getUserInfoFrom(accessToken)
-    .then (userInfo) -> User.for(userInfo)
+  da.AccessToken.getUserInfoFrom(accessToken)
+    .then (userInfo) -> da.User.for(userInfo)
     .then (user) ->
       if not user then Q.reject(new Error('user received null'))
       done(null, user)

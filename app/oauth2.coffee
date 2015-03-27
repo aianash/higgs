@@ -3,10 +3,13 @@ oauth2orize = require 'oauth2orize'
 passport    = require 'passport'
 login       = require 'connect-ensure-login'
 winston     = require 'winston'
+path        = require 'path'
 
-User        = require __dirname + '/models/user'
-AccessToken = require __dirname + '/models/access-token'
-logger      = require __dirname + '/utils/logger'
+da = {} # namespacing under dataaccess
+da.User        = require path.join(__dirname, '/dataaccess/user')
+da.AccessToken = require path.join(__dirname, '/dataaccess/access-token')
+
+logger      = require path.join(__dirname, '/utils/logger')
 
 # Create OAuth 2.0 server
 server = oauth2orize.createServer()
@@ -26,7 +29,7 @@ server.exchange 'token', oauth2orize.exchange.clientCredentials (userInfo, scope
   createAccessToken = (user) ->
     if not user then return Q.reject(new Error('null user received'))
 
-    AccessToken.newToken(user)
+    da.AccessToken.newToken(user)
       .then (token) -> done null, token
 
 
@@ -41,7 +44,7 @@ server.exchange 'token', oauth2orize.exchange.clientCredentials (userInfo, scope
 
   ####
 
-  return User.createOrUpdate(userInfo)
+  return da.User.createOrUpdate(userInfo)
       .spread sendVerificationMail
       .then createAccessToken
       .catch handleError

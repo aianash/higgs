@@ -1,8 +1,12 @@
+Q        = require 'q'
+path     = require 'path'
 Strategy = require 'passport-strategy'
 FB       = require 'fb'
 
-settings   = require __dirname + '/../settings'
-ClientApps = require __dirname + '/../models/client-apps'
+FBUtils    = require path.join(__dirname, '../utils/fb')
+logger     = require path.join(__dirname, '../utils/logger')
+settings   = require path.join(__dirname, '../settings')
+ClientApps = require path.join(__dirname, '../dataaccess/client-apps')
 
 FB.options
   appId    : settings.get('facebook:appId')
@@ -62,18 +66,21 @@ class HiggsFBStrategy extends Strategy
     # Once verified return information to be stored
     # for the user.
     ClientApps.verify({clientId, clientSecret})
-      .then (verified) =>
-        if not verified then return @fail(message: 'Unrecognized app', 400)
+      .then (verified) ->
+        if not verified then return Q.reject(new Error('Unrecognized app'))
 
         parameters =
-          access_token: facebookToken
+          access_token    : facebookToken
+          appsecret_proof : FBUtils.createAppSecretProof(facebookToken, FB.options('appSecret'))
 
-        FB.api '/me', 'get', parameters, (result) =>
+        deferred = Q.defer()
+
+        FB.api '/me', 'get', parameters, (result) ->
           if !result || result.error || not result.verified
-            return @fail(message: 'Facebook access token not authorized', 400)
+            return deferred.reject new Error('Facebook access token not authorized ' + result.error.message)
 
           if result.id isnt fbuid
-            return @fail(message: 'Invalid access token for the user with id ' + fbuid, 400)
+            return deferred.reject new Error('Invalid access token for the user with id ' + fbuid)
 
           # User info that will be used to create/update user account
           # with higgs
@@ -85,11 +92,20 @@ class HiggsFBStrategy extends Strategy
             location:   result.location.name
             gender:     result.gender
             fbuid:      result.id
+            fbToken:    facebookToken
             email:      result.email
             timezone:   result.timezone
 
 
-          @success userInfo, scope: '*'
+          deferred.resolve userInfo
 
+        deferred.promise
+
+      .then (userInfo) =>
+        @success userInfo, scope: '*'
+      .catch (err) =>
+        logger.log('error', err.message)
+        @fail(message: err.message, 400)
+      .done()
 
 module.exports = HiggsFBStrategy
