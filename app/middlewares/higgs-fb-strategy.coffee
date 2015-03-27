@@ -3,6 +3,7 @@ path     = require 'path'
 Strategy = require 'passport-strategy'
 FB       = require 'fb'
 
+FBUtils    = require path.join(__dirname, '../utils/fb')
 logger     = require path.join(__dirname, '../utils/logger')
 settings   = require path.join(__dirname, '../settings')
 ClientApps = require path.join(__dirname, '../dataaccess/client-apps')
@@ -69,7 +70,8 @@ class HiggsFBStrategy extends Strategy
         if not verified then return Q.reject(new Error('Unrecognized app'))
 
         parameters =
-          access_token: facebookToken
+          access_token    : facebookToken
+          appsecret_proof : FBUtils.createAppSecretProof(facebookToken, FB.options('appSecret'))
 
         deferred = Q.defer()
 

@@ -6,11 +6,13 @@ FB.options
   appSecret: 'b59466a3500f21168131758c3dba4ce1'
 
 
+# [IMP] facebook_token and fbuid are to be generated using
+# Graph ui explorer for Shoplane App
 loginData =
-  facebook_token: 'CAACEdEose0cBADrcF2YjemzvOXUUfEm2afL7ZBcJCZBZBftzgdz1qlRXIgkunVvuhVyxSdjd0804BbKiulbkbZBseiDvDBwgZApfq65frj5W7OirXmNyKYb0lGw3W280dWdAfAZB127fciWY0T4HCYQp7sED5OJeiAXtTRExmhJeP5jXZCHZAgZCUap5E1krGsDZBr8zDeZAM5YzTJNnbrTDBUOYRvyqNsFsJkl84GPEFukSwZDZD'
+  facebook_token: 'CAALYIU6LOQsBAA3jCMBSE4Jn7b84ZB575OCwzNsZAJb4DU3FCnQVlhSEYoKREqcYDSvnZAvDkILlIlWkS3yChQWomcOqH4J8X9Ml3vshIFnKD1HCCG2gZAACmtBb2XJZBThgJIqMJz1HO6jlw2ZCLjdBpiLgugdRBMLMLlzT4XnJZBLLQ1HZCkZA0SlD6b3xjXOOFZAkRHZCCah5DoYN5skqsZAlieApRSz8U31cfh4LwqPLvwZDZD'
   client_secret: 'boseeinsteincondensate'
   client_id: '918273645'
-  fbuid: '10203676044758492'
+  fbuid: '10205798015366431'
   grant_type: 'token'
 
 
