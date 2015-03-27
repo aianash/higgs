@@ -31,15 +31,25 @@ class Piggyback
     @_stack = []
 
 
-  register: (method, path, handler) ->
+  register: (method, path, handler, options) ->
     if not _.isFunction(handler)
       throw new Error('Currently we only support one handler which has to be function')
 
+    options = options || {}
+    _.defaults options, {authenticate: true}
+
+
+
     @_stack.push(new Router(method, path, handler))
+
 
     # [NOTE] Currently parser and authenticate middleware is
     # hard coded
-    handlers = [jsonParser, authenticate, @_handler, handler]
+    handlers = [jsonParser]
+    if options.authenticate then handlers.push(authenticate)
+
+    handlers = handlers.concat [@_handler, handler]
+
 
     new RouteConfigurator(method, path, handlers)
 
