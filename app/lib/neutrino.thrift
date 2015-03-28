@@ -1,5 +1,6 @@
 include 'common.thrift'
 include 'shopplan.thrift'
+include 'feed.thrift'
 
 namespace java com.goshoplane.neutrino.service
 namespace js neutrino.service
@@ -76,5 +77,14 @@ service Neutrino {
 
   #/** Search APIs */
 
+
+
+  #/** Feed APIs */
+  feed.Feed getCommonFeed(1:feed.FeedFilter filter) throws (1:NeutrinoException nex);
+  feed.Feed getUserFeed(1:common.UserId userId, 2:feed.FeedFilter filter) throws (1:NeutrinoException nex);
+
+
   #/** Messaging APIs */
+
+
 }

@@ -23,14 +23,8 @@ enum Gender {
   MALE = 2;
 }
 
-enum UserIdType {
-  FB = 1;
-  Higgs = 2;
-}
-
 struct UserId {
   1: i64 uuid;
-  2: optional UserIdType type;
 }
 
 struct UserName {
@@ -45,15 +39,19 @@ struct UserAvatar {
   3: optional Url large;
 }
 
-enum StoreType {
-  CLOTHING = 1;
-  ELECTRONICS = 2;
-  MULTI = 3;
-}
+#enum StoreType {
+#  CLOTHING = 1;
+#  ELECTRONICS = 2;
+#  MULTI = 3;
+#}
 
 struct StoreId {
   1: i64 stuid;
-  #2: StoreType type;
+}
+
+struct StoreName {
+  1: optional string full;
+  2: optional string handle;
 }
 
 
