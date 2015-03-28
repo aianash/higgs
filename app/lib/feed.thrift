@@ -20,7 +20,7 @@ struct Offer {
 }
 
 
-struct OfferAdPost {
+struct OfferPost {
   1: PostId postId;
   2: StreamIndex index;
   3: common.StoreId storeId;
@@ -49,7 +49,7 @@ struct PosterAdPost {
 
 
 struct Feed {
-  1: list<OfferAdPost> offerPosts;
+  1: list<OfferPost> offerPosts;
   2: list<PosterAdPost> posterAdPosts;
 }
 

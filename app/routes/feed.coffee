@@ -5,20 +5,18 @@ passport        = require 'passport'
 express         = require 'express'
 winston         = require 'winston'
 
-controller_path = __dirname + '/../controllers'
-
 settings        = require __dirname + '/../settings'
 logger          = require __dirname + '/../utils/logger'
 Piggyback       = require path.join(__dirname, '../middlewares/piggyback')
 
 router = express.Router()
 
-feeds = require controller_path + '/feeds'
+feed = require path.join(__dirname, '../controllers/feed')
 
 jsonParser = bodyParser.json()
 
-Piggyback.register('POST',  '/feeds/user',    feeds.user, authenticate: false)   .in(router)
-Piggyback.register('POST',  '/feeds/common',  feeds.common) .in(router)
+Piggyback.register('GET',  '/feed/common',    feed.common, authenticate: false)   .in(router)
+Piggyback.register('GET',  '/feed/user',      feed.user)                          .in(router)
 
 
 module.exports = router
