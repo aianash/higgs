@@ -24,6 +24,7 @@ Piggyback.register('POST',    '/shopplan/:planId',                    shopplan.a
 Piggyback.register('DELETE',  '/shopplan/:planId',                    shopplan.remove)            .in(router)
 Piggyback.register('PUT',     '/shopplan/:planId/end',                shopplan.end)               .in(router)
 
+Piggyback.register('GET',     '/shopplan/:planId/friends',            shopplan.friends)           .in(router)
 Piggyback.register('GET',     '/shopplan/:planId/invites',            shopplan.invites)           .in(router)
 
 Piggyback.register('GET',     '/shopplan/:planId/store/locations',    shopplan.storeLocations)    .in(router)

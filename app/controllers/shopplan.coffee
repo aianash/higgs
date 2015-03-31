@@ -1,13 +1,6 @@
-bodyParser      = require 'body-parser'
 Q               = require 'q'
 path            = require 'path'
-passport        = require 'passport'
 winston         = require 'winston'
-Thrift          = require 'thrift'
-
-urlencodedParser = bodyParser.urlencoded(extended: true)
-jsonParser       = bodyParser.json()
-authenticate     = passport.authenticate ['bearer'], {session: false}
 
 
 logger          = require path.join(__dirname, '../utils/logger')
@@ -107,6 +100,19 @@ invites = (req, res) ->
 
 
 
+friends = (req, res) ->
+  da.ShopPlan.getFriendsForInvite req.user.id, req.params.planId, req.body
+    .then (friends) -> res.send friends
+    .catch (err) ->
+      logger.log('error', 'Error getting friends to invite for plan', err.message, winston.exception.getTrace(err))
+      res.send
+        error:
+          message: err.message
+          type: typeof err
+    .done()
+
+
+
 storeLocations = (req, res) ->
   da.ShopPlan.getStoreLocations req.user.id, req.params.planId
     .then (locations) -> res.send locations
@@ -180,6 +186,7 @@ exports.add                 = add
 exports.remove              = remove
 exports.end                 = end
 exports.invites             = invites
+exports.friends             = friends
 exports.storeLocations      = storeLocations
 exports.destinations        = destinations
 exports.addDestinations     = addDestinations

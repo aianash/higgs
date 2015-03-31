@@ -49,6 +49,10 @@ struct UserInfo {
   9: optional bool isNew;
 }
 
+struct FriendListFilter {
+  1: optional common.PostalAddress location;
+}
+
 
 service Neutrino {
 
@@ -67,6 +71,7 @@ service Neutrino {
   bool removeFromShopPlan(1:shopplan.ShopPlanId shopplanId, 2:ModifyShopPlanReq removeReq) throws (1:NeutrinoException nex);
 
   set<shopplan.Friend> getInvitedUsers(1:shopplan.ShopPlanId shopplanId) throws (1:NeutrinoException nex);
+  set<shopplan.Friend> getFriendsForInvite(1:shopplan.ShopPlanId shopplanId, 2:FriendListFilter filter) throws (1:NeutrinoException nex);
 
   set<common.GPSLocation> getStoreLocations(1:shopplan.ShopPlanId shopplanId) throws (1:NeutrinoException nex);
 

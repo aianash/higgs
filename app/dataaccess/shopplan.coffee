@@ -25,6 +25,13 @@ createModifyShopPlanReq = (modify) ->
 
 
 
+createFriendListFilter = (filter) ->
+  {city} = filter
+  location = new common_ttypes.PostalAddress {city}
+
+  new neutrino_ttypes.FriendListFilter {location}
+
+
 ### EXPOSED METHODS ###
 
 
@@ -73,6 +80,14 @@ module.exports.removeFromShopPlan = (uuid, suid, removals) ->
 module.exports.getInvitedUsers = (uuid, suid) ->
   NeutrinoClient.get (client) ->
     client.q.getInvitedUsers Id.forShopPlan uuid, suid
+
+
+
+module.exports.getFriendsForInvite = (uuid, suid, filter) ->
+  filter = createFriendListFilter filter
+
+  NeutrinoClient.get (client) ->
+    client.q.getFriendsForInvite Id.forShopPlan(uuid, suid), filter
 
 
 
