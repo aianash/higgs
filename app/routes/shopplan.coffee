@@ -16,23 +16,11 @@ jsonParser = bodyParser.json()
 
 router = express.Router()
 
-Piggyback.register('GET',     '/shopplan/all',                        shopplan.list)              .in(router)
-Piggyback.register('GET',     '/shopplan/new',                        shopplan.createNew)         .in(router)
+Piggyback.register('GET',     '/shopplan/all',                      shopplan.list)              .in(router)
+Piggyback.register('POST',    '/shopplan/create',                   shopplan.create)            .in(router)
 
-Piggyback.register('GET',     '/shopplan/:planId',                    shopplan.detail)            .in(router)
-Piggyback.register('POST',    '/shopplan/:planId',                    shopplan.add)               .in(router)
-Piggyback.register('DELETE',  '/shopplan/:planId',                    shopplan.remove)            .in(router)
-Piggyback.register('PUT',     '/shopplan/:planId/end',                shopplan.end)               .in(router)
-
-Piggyback.register('GET',     '/shopplan/:planId/friends',            shopplan.friends)           .in(router)
-Piggyback.register('GET',     '/shopplan/:planId/invites',            shopplan.invites)           .in(router)
-
-Piggyback.register('GET',     '/shopplan/:planId/store/locations',    shopplan.storeLocations)    .in(router)
-
-Piggyback.register('GET',     '/shopplan/:planId/destinations',       shopplan.destinations)      .in(router)
-Piggyback.register('POST',    '/shopplan/:planId/destinations',       shopplan.addDestinations)   .in(router)
-Piggyback.register('PUT',     '/shopplan/:planId/destinations',       shopplan.updateDestinations).in(router)
-Piggyback.register('DELETE',  '/shopplan/:planId/destinations',       shopplan.removeDestinations).in(router)
-
+Piggyback.register('GET',     '/shopplan/:suid',                    shopplan.get)               .in(router)
+Piggyback.register('POST',    '/shopplan/:suid',                    shopplan.cud)               .in(router)
+Piggyback.register('DELETE',  '/shopplan/:suid',                    shopplan.end)               .in(router)
 
 module.exports = router

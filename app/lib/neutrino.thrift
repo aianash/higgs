@@ -12,26 +12,6 @@ exception NeutrinoException {
 }
 
 
-struct ModifyShopPlanReq {
-  1: set<common.StoreId> stores;
-  2: set<common.CatalogueItemId> items;
-  3: set<common.UserId> invites;
-}
-
-
-struct AddDestinationReq {
-  1: common.GPSLocation location;
-  2: shopplan.DestinationOrder order;
-}
-
-
-struct UpdateDestinationReq {
-  1: shopplan.DestinationId destId;
-  2: optional common.GPSLocation location;
-  3: optional shopplan.DestinationOrder order;
-}
-
-
 struct FacebookInfo {
   1: common.UserId userId
   2: FBToken token
@@ -53,43 +33,51 @@ struct FriendListFilter {
   1: optional common.PostalAddress location;
 }
 
+struct CUDDestination {
+  1: optional list<Destination> creates;
+  2: optional list<Destination> updates;
+  3: optional list<DestinationId> deletes;
+}
+
+struct CUDInvites {
+  1: optional list<shopplan.Friend> adds;
+  3: optional list<UserId> removes;
+}
+
+struct CUDDStores {
+  1: optional list<shopplan.DStore> adds;
+  2: optional list<common.StoreId> removes;
+}
+
+struct CUDShopPlan {
+  1: optional CUDDestination destinations;
+  2: optional CUDInvites invites;
+  3: optional CUDDStores dstores;
+}
 
 service Neutrino {
 
   #/** User APIs */
   UserInfo createOrUpdateUser(1:UserInfo userInfo) throws (1:NeutrinoException nex);
   UserInfo getUserDetail(1:common.UserId userId) throws (1:NeutrinoException nex);
+  set<shopplan.Friend> getFriendsForInvite(1:common.UserId, 2:FriendListFilter filter) throws (1:NeutrinoException nex);
 
 
-  #/** ShopPlan CRUD apis */
-  list<shopplan.ShopPlan> getShopPlansFor(1:common.UserId userId) throws (1:NeutrinoException nex);
-  shopplan.ShopPlan getShopPlan(1:shopplan.ShopPlanId shopplanId) throws (1:NeutrinoException nex);
-  shopplan.ShopPlan newShopPlanFor(1:common.UserId userId) throws (1:NeutrinoException nex);
-  bool endShopPlan(1:shopplan.ShopPlanId shopplanId) throws (1:NeutrinoException nex);
+  #/** Bucket APIs */
+  set<shopplan.StoreLocation> getBucketStoreLocations(1:shopplan.ShopPlanId shopplanId) throws (1:NeutrinoException nex);
+  set<shopplan.StoreLocation> getShopPlanStoreLocations(1:shopplan.ShopLaneId shopplanId) throws (1:NeutrinoException nex);
 
-  bool addToShopPlan(1:shopplan.ShopPlanId shopplanId, 2:ModifyShopPlanReq addReq) throws (1:NeutrinoException nex);
-  bool removeFromShopPlan(1:shopplan.ShopPlanId shopplanId, 2:ModifyShopPlanReq removeReq) throws (1:NeutrinoException nex);
 
-  set<shopplan.Friend> getInvitedUsers(1:shopplan.ShopPlanId shopplanId) throws (1:NeutrinoException nex);
-  set<shopplan.Friend> getFriendsForInvite(1:shopplan.ShopPlanId shopplanId, 2:FriendListFilter filter) throws (1:NeutrinoException nex);
-
-  set<common.GPSLocation> getStoreLocations(1:shopplan.ShopPlanId shopplanId) throws (1:NeutrinoException nex);
-
-  set<shopplan.Destination> getDestinations(1:shopplan.ShopPlanId shopplanId) throws (1:NeutrinoException nex);
-  set<shopplan.Destination> addDestinations(1:shopplan.ShopPlanId shopplanId, 2:set<AddDestinationReq> addReqs) throws (1:NeutrinoException nex);
-  bool updateDestinations(1:set<UpdateDestinationReq> updateReqs) throws (1:NeutrinoException nex);
-  bool removeDestinations(1:set<shopplan.DestinationId> destIds) throws (1:NeutrinoException nex);
-
-  #/** Search APIs */
-
+  #/** ShopPlan APIs */
+  list<shopplan.ShopPlan> getShopPlans(1:common.UserId userId) throws (1:NeutrinoException nex);
+  shopplan.ShopPlan getShopPlan(1:shopplan.ShopPlanId shopplanId, 2:list<string> fields) throws (1:NeutrinoException nex);
+  shopplan.ShopPlan createShopPlan(1:common.UserId userId, 2:CUDShopPlan cud) throws (1:NeutrinoException nex);
+  shopplan.ShopPlan cudShopPlan(1:shopplan.ShopPlanId shopplanId, 2:CUDShopPlan cud) throws (1:NeutrinoException nex);
+  shopplan.ShopPlan endShopPlan(1:shopplan.ShopPlanId shopplanId) throws (1:NeutrinoException nex);
 
 
   #/** Feed APIs */
   feed.Feed getCommonFeed(1:feed.FeedFilter filter) throws (1:NeutrinoException nex);
   feed.Feed getUserFeed(1:common.UserId userId, 2:feed.FeedFilter filter) throws (1:NeutrinoException nex);
-
-
-  #/** Messaging APIs */
-
 
 }
