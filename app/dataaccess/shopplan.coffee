@@ -8,8 +8,8 @@ common_ttypes   = require path.join(__dirname, '../lib/common_types')
 neutrino_ttypes = require path.join(__dirname, '../lib/neutrino_types')
 shopplan_ttypes = require path.join(__dirname, '../lib/shopplan_types')
 
-Id      = require path.join(__dirname, '../utils/id')
-Convert = require path.join(__dirname, '../utils/id')
+Id              = require path.join(__dirname, '../utils/id')
+Convert         = require path.join(__dirname, '../utils/convert')
 
 
 ### EXPOSED METHODS ###

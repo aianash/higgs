@@ -1,11 +1,13 @@
-Q = require 'q'
-_ = require 'lodash'
+Q    = require 'q'
+_    = require 'lodash'
 path = require 'path'
 
-NeutrinoClient = require path.join(__dirname, '../lib/neutrino-client')
+NeutrinoClient  = require path.join(__dirname, '../lib/neutrino-client')
 
 common_ttypes   = require path.join(__dirname, '../lib/common_types')
 neutrino_ttypes = require path.join(__dirname, '../lib/neutrino_types')
+
+Convert         = require path.join(__dirname, '../utils/convert')
 
 
 # Instance of this User model
@@ -13,17 +15,27 @@ neutrino_ttypes = require path.join(__dirname, '../lib/neutrino_types')
 # as req.user
 class User
   constructor: (info) ->
-    @id = info.id
-
+    @uuid = info.id
     @_meta = info
 
+
   detail: ->
-    unless @id then return Q.reject(new Error('this user object has empty id field'))
+    unless @uuid then return Q.reject(new Error('this user object has empty id field'))
 
     NeutrinoClient.get (client) =>
-      client.q.getUserDetail(new common_ttypes.UserId(uuid: @id))
+      client.q.getUserDetail Id.forUser(@uuid)
 
 
+  getFriendsForInvite: (filter) ->
+    filter = Convert.toFriendListFilter filter
+    userId = Id.forUser @uuid
+
+    NeutrinoClient.get (client) ->
+      client.q.getFriendsForInvite userId, filter
+
+
+
+################ Exposed methods ##################
 
 
 exports.createOrUpdate = (userInfo) ->

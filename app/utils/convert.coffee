@@ -102,3 +102,12 @@ toCUDShopPlan = module.exports.toCUDShopPlan = (uuid, suid, cud) ->
   dstores      = toCUDDStores uuid, suid, cud
 
   new neutrino_ttypes.CUDShopPlan {destinations, invites, dstores}
+
+
+
+toFriendListFilter = module.exports.toFriendListFilter = (filter) ->
+  {location} = filter
+
+  location = toPostalAddress location
+
+  new neutrino_ttypes.FriendListFilter {location}
