@@ -7,21 +7,45 @@ typedef i16 DestinationOrder
 typedef string Title
 typedef i64 Timestamp
 
-
-/**
- * Store objec wih link to a destination
- */
-struct DStore {
-  1: common.StoreId storeId;
-  2: common.StoreName name;
-  3: common.PostalAddress address;
-  4: optional DestinationId destId;
-  5: optional list<common.ItemType> itemTypes;
+struct ShopPlanId {
+  1: common.UserId createdBy;
+  2: i64 suid;
 }
 
 struct DestinationId {
   1: ShopPlanId shopplanId;
   2: i64 dtuid;
+}
+
+enum BucketStoreField {
+  NAME            = 1;
+  ADDRESS         = 2;
+  ITEM_TYPES      = 3;
+  CATALOGUE_ITEMS = 4;
+}
+
+struct BucketStore {
+  1: common.StoreId storeId;
+  2: optional common.StoreName name;
+  3: optional common.PostalAddress address;
+  4: optional set<common.ItemType> itemTypes;
+  5: optional set<common.SerializedCatalogueItem> catalogueItems;
+}
+
+enum ShopPlanStoreField {
+  NAME            = 1;
+  ADDRESS         = 2;
+  ITEM_TYPES      = 3;
+  CATALOGUE_ITEMS = 4;
+}
+
+struct ShopPlanStore {
+  1: common.StoreId storeId;
+  2: DestinationId destId;
+  3: optional common.StoreName name;
+  4: optional common.PostalAddress address;
+  5: optional set<common.ItemType> itemTypes;
+  6: optional set<common.SerializedCatalogueItem> catalogueItems;
 }
 
 struct Destination {
@@ -40,19 +64,29 @@ struct Friend {
   1: common.UserId id;
   2: optional common.UserName name;
   3: optional common.UserAvatar avatar;
-  4: optional InviteStatus inviteStatus;
 }
 
-struct ShopPlanId {
-  1: common.UserId createdBy;
-  2: i64 suid;
+struct Invite {
+  1: common.UserId friendId;
+  2: ShopPlanId shopplanId;
+  3: optional common.UserName name;
+  4: optional common.UserAvatar avatar;
+  5: optional InviteStatus inviteStatus;
+}
+
+enum ShopPlanField {
+  TITLE           = 1;
+  STORES          = 2;
+  CATALOGUE_ITEMS = 3;
+  DESTINATIONS    = 4;
+  INVITES         = 5;
 }
 
 struct ShopPlan {
   1: ShopPlanId shopplanId;
   2: optional Title title;
-  3: optional list<DStore> dstores;
+  3: optional list<ShopPlanStore> stores;
   4: optional list<Destination> destinations;
-  5: optional list<Friend> invites;
+  5: optional list<Invite> invites;
   6: bool isInvitation;
 }

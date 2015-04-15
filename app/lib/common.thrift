@@ -12,6 +12,7 @@ typedef double Latitude
 typedef double Longitude
 typedef string Email
 typedef string Timezone
+typedef string FBToken
 
 
 enum Locale {
@@ -39,11 +40,26 @@ struct UserAvatar {
   3: optional Url large;
 }
 
-#enum StoreType {
-#  CLOTHING = 1;
-#  ELECTRONICS = 2;
-#  MULTI = 3;
-#}
+
+struct FacebookInfo {
+  1: UserId userId;
+  2: optional FBToken token;
+}
+
+struct UserInfo {
+  1: optional UserName name;
+  2: optional Locale locale;
+  3: optional Gender gender;
+  4: optional FacebookInfo facebookInfo;
+  5: optional Email email;
+  6: optional Timezone timezone;
+  7: optional UserAvatar avatar;
+  8: optional bool isNew;
+}
+
+enum ItemType {
+  ApparelMen = 1;
+}
 
 struct StoreId {
   1: i64 stuid;
@@ -54,10 +70,9 @@ struct StoreName {
   2: optional string handle;
 }
 
-
 struct CatalogueItemId {
-  1: i64 cuid;
-  2: StoreId storeId;
+  1: StoreId storeId;
+  2: i64 cuid;
 }
 
 enum SerializerType {
@@ -68,7 +83,7 @@ enum SerializerType {
 
 struct SerializerId {
   1: string sid;
-  2: SerializerType type;
+  2: SerializerType stype;
 }
 
 struct SerializedCatalogueItem {
