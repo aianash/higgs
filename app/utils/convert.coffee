@@ -75,6 +75,23 @@ Convert.toFeedFilter = (filter) ->
 ####################### USERS DS CONVERSIONS ###########################
 ###########################################################################
 
+Convert.toLocale = (locale) ->
+  common_ttypes.Locale[locale.toUpperCase()]
+
+
+
+Convert.toGender = (gender) ->
+  common_ttypes.Gender[gender.toUpperCase()]
+
+
+
+Convert.toFacebookInfo = (info) ->
+  id    = Id.forUser info.fbuid
+  token = info.fbToken
+
+  new common_ttypes.FacebookInfo {id, token}
+
+
 
 Convert.toFriendListFilter = (filter) ->
   {location} = filter
@@ -109,7 +126,18 @@ Convert.toFriend = (friend) ->
 
 
 
-Convert.toUserInfo = () ->
+Convert.toUserInfo = (info) ->
+  {name, locale, gender, facebookInfo, email, timezone, avatar, isNew} = info
+
+  name         = Convert.toUserName name
+  locale       = Convert.toLocale locale
+  gender       = Convert.toGender gender
+  facebookInfo = Convert.toFacebookInfo facebookInfo
+  avatar       = Convert.toUserAvatar avatar
+  isNew        = isNew
+
+  new common_ttypes.UserInfo {name, locale, gender, facebookInfo, email, timezone, avatar, isNew}
+
 
 
 ###########################################################################

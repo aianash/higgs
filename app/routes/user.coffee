@@ -6,6 +6,7 @@ user      = require path.join(__dirname, '../controllers/user')
 
 router    = express.Router()
 
+Piggyback.register('GET',  '/me',            user.me)        .in(router)
 Piggyback.register('GET',  '/me/friends',    user.friends)   .in(router)
 
 module.exports = router

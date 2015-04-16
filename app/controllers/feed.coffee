@@ -3,10 +3,11 @@ path            = require 'path'
 winston         = require 'winston'
 
 
-logger          = require path.join(__dirname, '../utils/logger')
+logger = require path.join(__dirname, '../utils/logger')
 
 da = {} # scoping under dataaccess (da)
-da.Feed         = require path.join(__dirname, '../dataaccess/feed')
+da.Feed = require path.join(__dirname, '../dataaccess/feed')
+Flatten = require path.join(__dirname, '../utils/flatten')
 
 
 ###

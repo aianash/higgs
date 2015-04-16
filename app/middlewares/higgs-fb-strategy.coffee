@@ -65,7 +65,7 @@ class HiggsFBStrategy extends Strategy
     #
     # Once verified return information to be stored
     # for the user.
-    ClientApps.verify({clientId, clientSecret})
+    ClientApps.verify {clientId, clientSecret}
       .then (verified) ->
         if not verified then return Q.reject(new Error('Unrecognized app'))
 
@@ -75,27 +75,31 @@ class HiggsFBStrategy extends Strategy
 
         deferred = Q.defer()
 
-        FB.api '/me', 'get', parameters, (result) ->
-          if !result || result.error || not result.verified
-            return deferred.reject new Error('Facebook access token not authorized ' + result.error.message)
+        FB.api '/me', 'get', parameters, (fbInfo) ->
+          if !fbInfo || fbInfo.error || not fbInfo.verified
+            return deferred.reject new Error('Facebook access token not authorized ' + fbInfo.error.message)
 
-          if result.id isnt fbuid
+          if fbInfo.id isnt fbuid
             return deferred.reject new Error('Invalid access token for the user with id ' + fbuid)
 
-          # User info that will be used to create/update user account
-          # with higgs
-          userInfo =
-            firstName:  result.first_name
-            lastName:   result.last_name
-            name:       result.name
-            locale:     result.locale
-            location:   result.location.name
-            gender:     result.gender
-            fbuid:      result.id
-            fbToken:    facebookToken
-            email:      result.email
-            timezone:   result.timezone
-
+          FB.api '/me/picture', 'get', 'parameters', (picture) ->
+            # User info that will be used to create/update user account
+            userInfo =
+              name :
+                first : result.first_name
+                last  : result.last_name
+                handle: result.name
+              avatar:
+                small : picture.url
+                medium: picture.url
+                large : picture.url
+              locale  : fbInfo.locale.toUpperCase()
+              gender  : fbInfo.gender
+              facebookInfo:
+                fbuid  : fbInfo.id
+                fbToken: facebookToken
+              email   : fbInfo.email
+              timezone: fbInfo.timezone
 
           deferred.resolve userInfo
 

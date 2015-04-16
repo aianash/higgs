@@ -8,10 +8,30 @@ shopplan_ttypes = require path.join(__dirname, '../lib/shopplan_types')
 
 # Helper conversions
 ReverseItemType = _.invert shopplan_ttypes.ItemType
-
-
+ReverseLocale   = _.invert common_ttypes.Locale
+ReverseGender   = _.invert common_ttypes.Gender
 
 Flatten = {}
+
+Flatten.locale = (locale) ->
+  if _.isString locale then locale.toUpperCase()
+  else if _.isNumber locale then ReverseLocale[locale]
+  else null
+
+
+Flatten.gender = (gender) ->
+  if _.isString gender then gender.toLowerCase()
+  else if _.isNumber gender then ReverseGender[gender]
+  else null
+
+
+Flatten.facebookInfo = (facebookInfo) ->
+  fbuid   = facebookInfo.userId.uuid
+  fbToken = facebookInfo.token
+
+  facebookInfo = {fbuid, fbToken}
+  _.pick facebookInfo, _.identity
+
 
 Flatten.userName = (name) ->
   name = _.pick name, _.identity
@@ -57,12 +77,27 @@ Flatten.catalogueItems = (items) ->
   _.filter items, _.identity
 
 
+Flatten.userInfo = (info) ->
+  name         = Flatten.userName info.name
+  locale       = Flatten.locale info.locale
+  gender       = Flatten.gender info.gender
+  facebookInfo = Flatten.facebookInfo info.facebookInfo
+  email        = info.email
+  timezone     = info.timezone
+  avatar       = Flatten.userAvatar info.avatar
+  isNew        = info.isNew
+
+  info = {name, locale, gender, facebookInfo, email, timezone, avatar, isNew}
+  _.pick info, _.identity
+
+
 Flatten.friend = (friend) ->
   fruid  = friend.id.uuid
   name   = Flatten.userName friend.name
   avatar = Flatten.userAvatar avatar
 
-  {fruid, name, avatar}
+  friend = {fruid, name, avatar}
+  _.pick friend, _.identity
 
 
 Flatten.friends = (friends) ->
@@ -84,7 +119,8 @@ Flatten.offerPost = (offerPost) ->
 
   from = {stuid, name, address}
 
-  {ptuid, idx, type, from, title, subtitle}
+  post = {ptuid, idx, type, from, title, subtitle}
+  _.pick post, _.identity
 
 
 
@@ -95,7 +131,8 @@ Flatten.posterAdPost = (posterAdPost) ->
   paduid  = posterAdPost.poster.paduid
   image   = posterAdPost.poster.image.link
 
-  {ptuid, idx, type, paduid, image}
+  post = {ptuid, idx, type, paduid, image}
+  _.pick post, _.identity
 
 
 

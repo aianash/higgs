@@ -15,7 +15,7 @@ Convert         = require path.join(__dirname, '../utils/convert')
 # as req.user
 class User
   constructor: (info) ->
-    @uuid = info.id
+    @uuid = info.uuid
     @_meta = info
 
 
@@ -34,47 +34,21 @@ class User
       client.q.getFriendsForInvite userId, filter
 
 
+  getUserInfo: ->
+    userId = Id.forUser @uuid
+
+    NeutrinoClient.get (client) ->
+      client.q.getUserDetail userId
+
 
 ################ Exposed methods ##################
 
 
 exports.createOrUpdate = (userInfo) ->
-
-  locale = common_ttypes.Locale.EN_US
-  gender = common_ttypes.Gender[userInfo.gender.toUpperCase()]
-
-  fbUserId = new common_ttypes.UserId
-    uuid: userInfo.fbuid
-    type: common_ttypes.UserIdType.FB
-
-  facebookInfo = new neutrino_ttypes.FacebookInfo
-    userId: fbUserId
-    token : userInfo.fbToken
-
-
-  names = new common_ttypes.UserName
-    first: userInfo.firstName
-    last : userInfo.lastName
-
-
-  req = new neutrino_ttypes.UserInfo({
-    names,
-    locale,
-    gender,
-    facebookInfo,
-    email: userInfo.email
-    #[TO DO] timezone: userInfo.timezone
-  })
-
-
   NeutrinoClient.get (client) ->
-    client.q.createOrUpdateUser(req).then (userInfo) ->
-      user = new User(
-        id: userInfo.userId.uuid
-        username: userInfo.username.handle
-      )
+    client.q.createUser Convert.toUserInfo userInfo
+      .then (userId) -> new User userId
 
-      Q.all [user, userInfo.isNew]
 
 
 

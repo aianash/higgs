@@ -9,6 +9,39 @@ Flatten = require path.join(__dirname, '../utils/flatten')
 
 
 ###
+Get user complete info
+
+@params  {uuid}  req.user.uuid      user's unique id
+@returns {Array.<Object>} info      User's info
+                                    {
+                                      uuid         : <Number>
+                                      name         : {full: <String>, last: <String>, handle: <String>}
+                                      locale       : <String>
+                                      gender       : <String>
+                                      facebookInfo : {fbuid: <Number>, fbToken: <String>}
+                                      email        : <String>
+                                      timezone     : <String>
+                                      avatar       : {small: <String>, medium: <String>, large: <String>}
+                                      isNew        : <Boolean>
+                                    }
+###
+me = (req, res) ->
+  req.user.getUserInfo()
+    .then (info) ->
+      info = Flatten.userInfo info
+      info.uuid = req.user.uuid
+      res.send info
+    .catch (err) ->
+      logger.log 'error', 'Error getting friends for user', err.message, winston.exception.getTrace(err)
+      res.send
+        error:
+          message: err.message
+          type: typeof err
+    .done()
+
+
+
+###
 Get friends of user
 
 @params {uuid}    req.user.uuid       user's unique id
@@ -46,4 +79,5 @@ friends = (req, res) ->
     .done()
 
 
+exports.me      = me
 exports.friends = friends

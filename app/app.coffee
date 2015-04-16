@@ -13,14 +13,14 @@ logger        = require __dirname + '/utils/logger'
 oauth2        = require __dirname + '/oauth2'
 
 
-env = settings.get('NODE_ENV')
+env  = settings.get('NODE_ENV')
 port = settings.get('server:port')
 host = settings.get('server:host')
 
 app = express()
 app.settings.env = env
 
-jsonParser = bodyParser.json()
+jsonParser       = bodyParser.json()
 urlencodedParser = bodyParser.urlencoded(extended: true)
 
 app.set 'showStackError', true
@@ -40,7 +40,7 @@ app.locals.title = 'Higgs'
 
 ### AUTHENTICATION SETUP ###
 
-# App uses passoport for authentication
+# App uses passport for authentication
 app.use passport.initialize()
 
 
@@ -54,7 +54,7 @@ app.use passport.initialize()
 require __dirname + '/auth'
 
 
-# App usese this endpoint to get a Higgs token
+# App uses this endpoint to get a Higgs token
 # which is passed with further API requests requiring
 # authentication
 app.post  '/oauth/token', jsonParser, oauth2.token
@@ -64,19 +64,21 @@ app.post  '/oauth/token', jsonParser, oauth2.token
 
 
 # API routes to be added to the app
-apiRoutes = ['shopplan', 'feed', 'user']
+apiRoutes  = ['shopplan', 'feed', 'user', 'bucket']
 
 apiVersion = settings.get('api:version')
 
-apiPrefix = '/apiv' + apiVersion
+apiPrefix  = '/apiv' + apiVersion
 
 for route in apiRoutes
   router = require(__dirname + "/routes/#{route}")
   app.use(apiPrefix, router)
 
 
+logger.log 'info', 'Starting server ...', {port, host}
+
 server = app.listen port, host, ->
   host = server.address().address
   port = server.address().port
 
-  logger.log 'info', 'Server started ...', {port: port, host: host}
+  logger.log 'info', 'Server started', {port: port, host: host}
