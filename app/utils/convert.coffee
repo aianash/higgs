@@ -57,6 +57,20 @@ Convert.toStoreName = (name) ->
   new common_ttypes.StoreName {full, handle}
 
 
+#######################################################################
+####################### FEED DS CONVERSIONS ###########################
+#######################################################################
+
+
+Convert.toFeedFilter = (filter) ->
+  {city, page} = filter
+
+  location = new common_ttypes.PostalAddress {city} if city
+
+  new feed_ttypes.FeedFilter {location, page}
+
+
+
 ###########################################################################
 ####################### USERS DS CONVERSIONS ###########################
 ###########################################################################

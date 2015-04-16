@@ -70,6 +70,50 @@ Flatten.friends = (friends) ->
   _.filter friends, _.identity
 
 
+################ Feed Flatteners #####################
+
+Flatten.offerPost = (offerPost) ->
+  ptuid    = offerPost.postId.ptuid
+  idx      = offerPost.index
+  type     = 'offer'
+  stuid    = offerPost.storeId.stuid
+  name     = Flatten.storeName offerPost.storeName
+  address  = Flatten.postalAddress offerPost.storeAddress
+  title    = offerPost.offer.title
+  subtitle = offerPost.offer.subtitle
+
+  from = {stuid, name, address}
+
+  {ptuid, idx, type, from, title, subtitle}
+
+
+
+Flatten.posterAdPost = (posterAdPost) ->
+  ptuid   = posterAdPost.postId.ptuid
+  idx     = posterAdPost.index
+  type    = 'posterAd'
+  paduid  = posterAdPost.poster.paduid
+  image   = posterAdPost.poster.image.link
+
+  {ptuid, idx, type, paduid, image}
+
+
+
+Flatten.feed = (feed) ->
+  offers    = _.map feed.offerPosts,    Flatten.offerPost
+  posterAds = _.map feed.posterAdPosts, Flattem.posterAdPost
+
+  entries = []
+  entries = entries.concat offers.concat posterAds
+
+  entries = _.filter entries, _.identity
+
+  feed = _.sortBy entries, 'idx'
+  page = feed.page || 0
+
+  {page, feed}
+
+
 ################ ShopPlan Flatteners #####################
 
 Flatten.shopPlanId = (shopplanId) ->
