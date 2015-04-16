@@ -18,10 +18,11 @@ struct DestinationId {
 }
 
 enum BucketStoreField {
-  NAME            = 1;
-  ADDRESS         = 2;
-  ITEM_TYPES      = 3;
-  CATALOGUE_ITEMS = 4;
+  NAME                = 1;
+  ADDRESS             = 2;
+  ITEM_TYPES          = 3;
+  CATALOGUE_ITEMS     = 4;
+  CATALOGUE_ITEMS_IDS = 5;
 }
 
 struct BucketStore {

@@ -1,10 +1,35 @@
 path = require 'path'
+_    = require 'lodash'
+
 
 common_ttypes   = require path.join(__dirname, '../lib/common_types')
 neutrino_ttypes = require path.join(__dirname, '../lib/neutrino_types')
 shopplan_ttypes = require path.join(__dirname, '../lib/shopplan_types')
 
 Id = require path.join(__dirname, '/id')
+
+
+toCatalogueItemId = module.exports.toCatalogueItemId = (stuid, cuid)
+  storeId = toStoreId stuid
+  new common_ttypes.CatalogueItemId {storeId, cuid}
+
+
+# [NOTE] Right now only supports ids
+toCatalogueItem = module.exports.toCatalogueItem = (catalogueItem) ->
+  {stuid, cuid} = catalogueItem
+
+  itemId       = toCatalogueItemId stuid, cuid
+  serializerId = new common_ttypes.SerializerId {sid: 'unknown', stype: common_ttypes.SerializerType.UNKNOWN}
+  stream       = catalogueItem.stream || ''  # [TO DO] encode and then set
+
+  new common_ttypes.SerializedCatalogueItem {itemId, serializerId, stream}
+
+
+
+toCatalogueItems = module.exports.toCatalogueItems = (catalogueItems) ->
+  catalogueItems = _.map catalogueItems, toCatalogueItem
+  _.filter catalogueItems, _.identity
+
 
 
 toGPSLocation = module.exports.toGPSLocation = (gpsLoc) ->
@@ -111,3 +136,46 @@ toFriendListFilter = module.exports.toFriendListFilter = (filter) ->
   location = toPostalAddress location
 
   new neutrino_ttypes.FriendListFilter {location}
+
+
+
+toShopPlanFields = module.exports.toShopPlanFields = (fields) ->
+  fields = _.isArray fields ? fields : [fields]
+  fields = _.map fields, (field) -> shopplan_ttypes.ShopPlanField[field.toUpperCase()]
+  _.filter fields, _.identity
+
+
+
+toItemTypes = module.exports.toItemTypes = (itemTypes) ->
+  itemTypes = _.isArray itemTypes ? itemTypes : [itemTypes]
+  itemTypes = _.map itemTypes, (itemType) -> shopplan_ttypes.ItemTypes[itemType.toUpperCase()]
+  _.filter itemTypes, _.identity
+
+
+################################################
+############# BUCKET DS CONVERSIONS  ###########
+################################################
+
+toBucketStoreFields = module.exports.toBucketStoreFields = (fields) ->
+  fields = _.isArray fields ? fields : [fields]
+  fields = _.map fields, (field) -> shopplan_ttypes.BucketStoreField[field.toUpperCase()]
+  _.filter fields, _.identity
+
+
+toBucketStore = module.exports.toBucketStore = (store) ->
+  {stuid, name, address, itemTypes, catalogueItems} = store
+
+  storeId        = toStoreId stuid
+  name           = toStoreName name
+  address        = toPostalAddress address
+  itemTypes      = toItemTypes itemTypes ##
+  catalogueItems = toCatalogueItems catalogueItems ##
+
+  new shopplan_ttypes.BucketStore {storeId, name, address, itemTypes, catalogueItems}
+
+
+
+toCUDBucket = module.exports.toCUDBucket = (cud) ->
+  adds = _.map cud.creates.stores, toBucketStore
+  adds = _.filter adds, _.identity
+  new shopplan_ttypes.CUDBucket {adds}

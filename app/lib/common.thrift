@@ -79,6 +79,7 @@ enum SerializerType {
   MSGPCK = 1;
   JSON   = 2;
   Kryo   = 3;
+  UNKNOWN = 100;
 }
 
 struct SerializerId {
