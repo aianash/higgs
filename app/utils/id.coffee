@@ -14,9 +14,9 @@ forShopPlan = module.exports.forShopPlan = (uuid, suid) ->
 
 
 
-forDestination = module.exports.forDestination = (uuid, suid, duid) ->
+forDestination = module.exports.forDestination = (uuid, suid, dtuid) ->
   shopplanId = forShopPlan uuid, suid
-  new shopplan_ttypes.DestinationId {shopplanId, duid}
+  new shopplan_ttypes.DestinationId {shopplanId, dtuid}
 
 
 

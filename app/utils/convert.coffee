@@ -9,173 +9,225 @@ shopplan_ttypes = require path.join(__dirname, '../lib/shopplan_types')
 Id = require path.join(__dirname, '/id')
 
 
-toCatalogueItemId = module.exports.toCatalogueItemId = (stuid, cuid)
-  storeId = toStoreId stuid
+Convert = {}
+
+Convert.toCatalogueItemId = (stuid, cuid) ->
+  storeId = Convert.toStoreId stuid
   new common_ttypes.CatalogueItemId {storeId, cuid}
 
 
+Convert.toItemTypes = (itemTypes) ->
+  itemTypes = _.isArray itemTypes ? itemTypes : [itemTypes]
+  itemTypes = _.map itemTypes, (itemType) -> shopplan_ttypes.ItemTypes[itemType.Convert.toUpperCase()]
+  _.filter itemTypes, _.identity
+
+
 # [NOTE] Right now only supports ids
-toCatalogueItem = module.exports.toCatalogueItem = (catalogueItem) ->
+Convert.toCatalogueItem = (catalogueItem) ->
   {stuid, cuid} = catalogueItem
 
-  itemId       = toCatalogueItemId stuid, cuid
+  itemId       = Convert.toCatalogueItemId stuid, cuid
   serializerId = new common_ttypes.SerializerId {sid: 'unknown', stype: common_ttypes.SerializerType.UNKNOWN}
   stream       = catalogueItem.stream || ''  # [TO DO] encode and then set
 
   new common_ttypes.SerializedCatalogueItem {itemId, serializerId, stream}
 
 
-
-toCatalogueItems = module.exports.toCatalogueItems = (catalogueItems) ->
-  catalogueItems = _.map catalogueItems, toCatalogueItem
+Convert.toCatalogueItems = (catalogueItems) ->
+  catalogueItems = _.map catalogueItems, Convert.toCatalogueItem
   _.filter catalogueItems, _.identity
 
 
 
-toGPSLocation = module.exports.toGPSLocation = (gpsLoc) ->
+Convert.toGPSLocation = (gpsLoc) ->
   {lat, lng} = gpsLoc
   new common_ttypes.GPSLocation {lat, lng}
 
 
-
-toPostalAddress = module.exports.toPostalAddress = (address) ->
+Convert.toPostalAddress = (address) ->
   {gpsLoc, title, short, full, pincode, country, city} = address
 
-  gpsLoc = toGPSLocation gpsLoc
+  gpsLoc = Convert.toGPSLocation gpsLoc
 
   new shopplan_ttypes.PostalAddress {gpsLoc, title, short, full, pincode, country, city}
 
 
-
-toDestination = module.exports.toDestination = (uuid, suid, dest) ->
-  destId  = Id.forDestination uuid, suid, dest.dtuid
-  address = toPostalAddress dest.address
-
-  new shopplan_ttypes.Destination {destId, address}
+Convert.toStoreName = (name) ->
+  {full, handle} = name
+  new common_ttypes.StoreName {full, handle}
 
 
+###########################################################################
+####################### USERS DS CONVERSIONS ###########################
+###########################################################################
 
-toCUDDestination = module.exports.toCUDDestination = (uuid, suid, cud) ->
-  toDestination   = _.partial(toDestination, uuid, suid)
-  toDestinationId = _.partial(Id.forDestination, uuid, suid)
 
-  creates = _.map(cud.creates.destinations, toDestination)
-  updates = _.map(cud.updates.destinations, toDestination)
-  deletes = _.map(cud.deletes.destinations, toDestinationId)
+Convert.toFriendListFilter = (filter) ->
+  {location} = filter
 
-  new neutrino_ttypes.CUDDestination {creates, updates, deletes}
+  location = Convert.toPostalAddress location
+
+  new neutrino_ttypes.FriendListFilter {location}
 
 
 
-toUserName = module.exports.toUserName = (name) ->
+Convert.toUserName = (name) ->
   {first, last, handle} = name
   new common_ttypes.UserName {first, last, handle}
 
 
 
-toUserAvatar = module.exports.toUserAvatar = (avatar) ->
+Convert.toUserAvatar = (avatar) ->
   {small, medium, large} = avatar
   new common_ttypes.UserAvatar {small, medium, large}
 
 
 
-toFriend = module.exports.toFriend = (friend) ->
+Convert.toFriend = (friend) ->
   {uuid, name, avatar, inviteStatus} = friend
 
   id           = Id.forUser uuid
-  name         = toUserName name
-  avatar       = toUserAvatar avatar
+  name         = Convert.toUserName name
+  avatar       = Convert.toUserAvatar avatar
   inviteStatus = shopplan_ttypes.InviteStatus[inviteStatus]
 
   new shopplan_ttypes.Friend {id, name, avatar, inviteStatus}
 
 
 
-toCUDInvites = module.exports.toCUDInvites = (cud) ->
-  adds    = _.map(cud.creates.invites, toFriend)
-  removes = _.map(cud.deletes.invites, Id.forUser)
+Convert.toUserInfo = () ->
 
 
-
-  # [TO DO] add item types
-toDStore = module.exports.toDStore = (uuid, suid, dstore) ->
-  {stuid, name, address, dtuid} = dstore
-
-  storeId = toStoreId stuid
-  name    = toStoreName name
-  address = toPostalAddress address
-  destId  = Id.forDestination uuid, suid, dtuid
-
-  new shopplan_ttypes.DStore {storeId, name, address, destId}
+###########################################################################
+####################### ShopPlan DS CONVERSIONS ###########################
+###########################################################################
 
 
-
-toCUDDStores = module.exports.toCUDDStores = (uuid, suid, cud) ->
-  toDStore = _.partial(toDStore, uuid, suid)
-
-  adds    = _.map(cud.creates.dstores, toDStore)
-  removes = _.map(cud.creates.dstores, Id.forStore)
-
-  new neutrino_ttypes.CUDDStores {adds, removes}
-
-
-
-toCUDShopPlan = module.exports.toCUDShopPlan = (uuid, suid, cud) ->
-
-  destinations = toCUDDestination uuid, suid, cud
-  invites      = toCUDInvites cud
-  dstores      = toCUDDStores uuid, suid, cud
-
-  new neutrino_ttypes.CUDShopPlan {destinations, invites, dstores}
-
-
-
-toFriendListFilter = module.exports.toFriendListFilter = (filter) ->
-  {location} = filter
-
-  location = toPostalAddress location
-
-  new neutrino_ttypes.FriendListFilter {location}
-
-
-
-toShopPlanFields = module.exports.toShopPlanFields = (fields) ->
+Convert.toShopPlanStoreFields = (fields) ->
   fields = _.isArray fields ? fields : [fields]
-  fields = _.map fields, (field) -> shopplan_ttypes.ShopPlanField[field.toUpperCase()]
+  fields = _.map fields, (field) -> shopplan_ttypes.ShopPlanStoreField[field.Convert.toUpperCase()]
   _.filter fields, _.identity
 
 
 
-toItemTypes = module.exports.toItemTypes = (itemTypes) ->
-  itemTypes = _.isArray itemTypes ? itemTypes : [itemTypes]
-  itemTypes = _.map itemTypes, (itemType) -> shopplan_ttypes.ItemTypes[itemType.toUpperCase()]
-  _.filter itemTypes, _.identity
+Convert.toShopPlanFields = (fields) ->
+  fields = _.isArray fields ? fields : [fields]
+  fields = _.map fields, (field) -> shopplan_ttypes.ShopPlanField[field.Convert.toUpperCase()]
+  _.filter fields, _.identity
+
+
+
+Convert.toShopPlanStore = (uuid, suid, store) ->
+  {stuid, dtuid, name, address, itemTypes, catalogueItems} = store
+
+  storeId        = Id.forStore stuid
+  destId         = Id.forDestination uuid, suid, dtuid
+  name           = Convert.toStoreName name
+  address        = Convert.toPostalAddress address
+  itemTypes      = Convert.toItemTypes itemTypes
+  catalogueItems = Convert.toCatalogueItems catalogueItems
+
+  new shopplan_ttypes.ShopPlanStore {storeId, destId, name, address, itemTypes, catalogueItems}
+
+
+Convert.toDestination = (uuid, suid, dest) ->
+  destId   = Id.forDestination uuid, suid, dest.dtuid
+  address  = Convert.toPostalAddress dest.address
+  numShops = dest.numShops || -1
+
+  new shopplan_ttypes.Destination {destId, address, numShops}
+
+
+
+Convert.toInvite = (uuid, suid, invite) ->
+  friendId   = Id.forUser invite.fruid
+  shopplanId = Id.forShopPlan uuid, suid
+  name       = Convert.toUserName invite.name
+  avatar     = Convert.toUserAvatar invite.avatar
+
+  new shopplan_types.Invite {friendId, shopplanId, name, avatar}
+
+
+
+Convert.toCUDDShopPlanStores = (uuid, suid, cud) ->
+  toShopPlanStore = _.partial Convert.toShopPlanStore, uuid, suid
+
+  adds =
+    _.map cud.adds.stores, (store) ->
+      items = _.map store.catalogueItemIds, (cuid) -> {stuid: store.stuid, cuid}
+      store.catalogueItems = store.catalogueItems || items
+      store
+
+  adds     = _.map adds, toShopPlanStore
+  removals = _.map cud.removals.stores, Id.forStore
+
+  new neutrino_ttypes.CUDShopPlanStores {adds, removals}
+
+
+
+Convert.toCUDInvites = (uuid, suid, cud) ->
+  toInvite = _.partial Convert.toInvite, uuid, suid
+
+  adds     = _.map cud.adds.invites, toInvite
+  removals = _.map cud.removals.invites, Id.forUser
+
+  new neutrino_ttypes.CUDInvites {adds, removals}
+
+
+Convert.toCUDDestination = (uuid, suid, cud) ->
+  toDestination   = _.partial Convert.toDestination, uuid, suid
+  toDestinationId = _.partial Id.forDestination, uuid, suid
+
+  adds     = _.map cud.adds.destinations, toDestination
+  updates  = _.map cud.updates.destinations, toDestination
+  removals = _.map cud.removals.destinations, toDestinationId
+
+  new neutrino_ttypes.CUDDestination {adds, updates, removals}
+
+
+
+Convert.toCUDShopPlanMeta = (meta) ->
+  new neutrino_ttypes.CUDShopPlanMeta {title: meta.title}
+
+
+
+Convert.toCUDShopPlan = (uuid, suid, cud) ->
+  meta         = Convert.toCUDShopPlanMeta {title: cud.title}
+  destinations = Convert.toCUDDestination uuid, suid, cud
+  invites      = Convert.toCUDInvites cud
+  stores       = Convert.toCUDDShopPlanStores uuid, suid, cud
+
+  new neutrino_ttypes.CUDShopPlan {meta, destinations, invites, stores}
+
 
 
 ################################################
 ############# BUCKET DS CONVERSIONS  ###########
 ################################################
 
-toBucketStoreFields = module.exports.toBucketStoreFields = (fields) ->
+Convert.toBucketStoreFields = (fields) ->
   fields = _.isArray fields ? fields : [fields]
-  fields = _.map fields, (field) -> shopplan_ttypes.BucketStoreField[field.toUpperCase()]
+  fields = _.map fields, (field) -> shopplan_ttypes.BucketStoreField[field.Convert.toUpperCase()]
   _.filter fields, _.identity
 
 
-toBucketStore = module.exports.toBucketStore = (store) ->
+Convert.toBucketStore = (store) ->
   {stuid, name, address, itemTypes, catalogueItems} = store
 
-  storeId        = toStoreId stuid
-  name           = toStoreName name
-  address        = toPostalAddress address
-  itemTypes      = toItemTypes itemTypes ##
-  catalogueItems = toCatalogueItems catalogueItems ##
+  storeId        = Id.forStore stuid
+  name           = Convert.toStoreName name
+  address        = Convert.toPostalAddress address
+  itemTypes      = Convert.toItemTypes itemTypes ##
+  catalogueItems = Convert.toCatalogueItems catalogueItems ##
 
   new shopplan_ttypes.BucketStore {storeId, name, address, itemTypes, catalogueItems}
 
 
 
-toCUDBucket = module.exports.toCUDBucket = (cud) ->
-  adds = _.map cud.creates.stores, toBucketStore
+Convert.toCUDBucket = (cud) ->
+  adds = _.map cud.creates.stores, Convert.toBucketStore
   adds = _.filter adds, _.identity
   new shopplan_ttypes.CUDBucket {adds}
+
+
+module.exports = Convert

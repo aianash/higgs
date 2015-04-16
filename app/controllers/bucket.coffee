@@ -1,11 +1,11 @@
-Q               = require 'q'
-path            = require 'path'
-winston         = require 'winston'
+path    = require 'path'
+winston = require 'winston'
 
-logger          = require path.join(__dirname, '../utils/logger')
+logger  = require path.join(__dirname, '../utils/logger')
 
 da = {} # scoping under dataaccess (da)
-da.Bucket       = require path.join(__dirname, '../dataaccess/bucket')
+da.Bucket = require path.join(__dirname, '../dataaccess/bucket')
+Flatten   = require path.join(__dirname, '../utils/flatten')
 
 ###
 Get Bucket's Stores and items
@@ -47,7 +47,7 @@ stores = (req, res) ->
   fields = _.words req.query.fields || ''
 
   da.Bucket.list req.user.uuid, fields
-    .then (stores) -> res.send stores
+    .then (stores) -> res.send Flatten.bucketStores stores
     .catch (err) ->
       logger.log 'error', 'Error getting bucket stores for user', err.message, winston.exception.getTrace(err)
       res.send
