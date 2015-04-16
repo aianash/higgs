@@ -1,21 +1,11 @@
-bodyParser      = require 'body-parser'
-Q               = require 'q'
-path            = require 'path'
-passport        = require 'passport'
-express         = require 'express'
-winston         = require 'winston'
+path      = require 'path'
+express   = require 'express'
 
-settings        = require __dirname + '/../settings'
-logger          = require __dirname + '/../utils/logger'
-Piggyback       = require path.join(__dirname, '../middlewares/piggyback')
+Piggyback = require path.join(__dirname, '../middlewares/piggyback')
+user      = require path.join(__dirname, '../controllers/user')
 
-router = express.Router()
-
-user = require path.join(__dirname, '../controllers/user')
-
-jsonParser = bodyParser.json()
+router    = express.Router()
 
 Piggyback.register('GET',  '/me/friends',    user.friends)   .in(router)
-
 
 module.exports = router

@@ -57,6 +57,19 @@ Flatten.catalogueItems = (items) ->
   _.filter items, _.identity
 
 
+Flatten.friend = (friend) ->
+  fruid  = friend.id.uuid
+  name   = Flatten.userName friend.name
+  avatar = Flatten.userAvatar avatar
+
+  {fruid, name, avatar}
+
+
+Flatten.friends = (friends) ->
+  friends = _.map friends, Flatten.friend
+  _.filter friends, _.identity
+
+
 ################ ShopPlan Flatteners #####################
 
 Flatten.shopPlanId = (shopplanId) ->
