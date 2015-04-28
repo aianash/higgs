@@ -18,35 +18,37 @@ struct DestinationId {
 }
 
 enum BucketStoreField {
-  NAME                = 1;
-  ADDRESS             = 2;
-  ITEM_TYPES          = 3;
-  CATALOGUE_ITEMS     = 4;
-  CATALOGUE_ITEMS_IDS = 5;
+  Name              = 1;
+  Address           = 2;
+  ItemTypes         = 3;
+  CatalogueItems    = 4;
+  CatalogueItemIds  = 5;
 }
 
 struct BucketStore {
   1: common.StoreId storeId;
-  2: optional common.StoreName name;
-  3: optional common.PostalAddress address;
-  4: optional set<common.ItemType> itemTypes;
-  5: optional set<common.SerializedCatalogueItem> catalogueItems;
+  2: common.StoreType storeType;
+  3: common.StoreInfo info;
+  4: optional list<common.JsonCatalogueItem> catalogueItems;
 }
 
 enum ShopPlanStoreField {
-  NAME            = 1;
-  ADDRESS         = 2;
-  ITEM_TYPES      = 3;
-  CATALOGUE_ITEMS = 4;
+  Name             = 1;
+  Address          = 2;
+  ItemTypes        = 3;
+  Avatar           = 4;
+  Contacts         = 5;
+  CatalogueItemIds = 6;
+  CatalogueItems   = 7;
 }
 
 struct ShopPlanStore {
   1: common.StoreId storeId;
   2: DestinationId destId;
-  3: optional common.StoreName name;
-  4: optional common.PostalAddress address;
-  5: optional set<common.ItemType> itemTypes;
-  6: optional set<common.SerializedCatalogueItem> catalogueItems;
+  3: common.StoreType storeType;
+  4: common.StoreInfo info
+  5: optional list<common.JsonCatalogueItem> catalogueItems;
+  6: optional list<common.CatalogueItemId> itemIds;
 }
 
 struct Destination {
@@ -56,8 +58,8 @@ struct Destination {
 }
 
 enum InviteStatus {
-  PENDING = 1;
-  INVITED = 2;
+  PENDING  = 1;
+  INVITED  = 2;
   ACCEPTED = 3;
 }
 
@@ -76,11 +78,12 @@ struct Invite {
 }
 
 enum ShopPlanField {
-  TITLE           = 1;
-  STORES          = 2;
-  CATALOGUE_ITEMS = 3;
-  DESTINATIONS    = 4;
-  INVITES         = 5;
+  Title            = 1;
+  Stores           = 2;
+  CatalogueItems   = 3;
+  CatalogueItemIds = 4;
+  Destinations     = 5;
+  Invites          = 6;
 }
 
 struct ShopPlan {

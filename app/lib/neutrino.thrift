@@ -1,10 +1,13 @@
 include 'common.thrift'
 include 'shopplan.thrift'
 include 'feed.thrift'
+include 'search.thrift'
+
 
 namespace java com.goshoplane.neutrino.service
 namespace js neutrino.service
 
+typedef string Json
 exception NeutrinoException {
   1: string message;
 }
@@ -13,20 +16,20 @@ struct FriendListFilter {
   1: optional common.PostalAddress location;
 }
 
-struct CUDDestination {
+struct CUDDestinations {
   1: optional list<shopplan.Destination> adds;
   2: optional list<shopplan.Destination> updates;
   3: optional list<shopplan.DestinationId> removals;
 }
 
 struct CUDInvites {
-  1: optional list<shopplan.Invite> adds;
+  1: optional list<common.UserId> adds;
   2: optional list<common.UserId> removals;
 }
 
-struct CUDShopPlanStore {
-  1: optional list<shopplan.ShopPlanStore> adds;
-  2: optional list<common.StoreId> removals;
+struct CUDShopPlanItems {
+  1: optional list<common.CatalogueItemId> adds;
+  2: optional list<common.CatalogueItemId> removals;
 }
 
 struct CUDShopPlanMeta {
@@ -35,15 +38,29 @@ struct CUDShopPlanMeta {
 
 struct CUDShopPlan {
   1: optional CUDShopPlanMeta meta;
-  2: optional CUDDestination destinations;
+  2: optional CUDDestinations destinations;
   3: optional CUDInvites invites;
-  4: optional CUDShopPlanStore stores;
+  4: optional CUDShopPlanItems items;
 }
 
 struct CUDBucket {
-  1: optional list<shopplan.BucketStore> adds;
+  1: optional list<common.CatalogueItemId> adds;
   // [TO REVISIT] no deletions at present.
 }
+
+struct SearchResultStore {
+  1: common.StoreId storeId;
+  2: common.StoreType storeType;
+  3: common.StoreInfo info;
+  4: list<common.JsonCatalogueItem> items;
+}
+
+
+struct SearchResult {
+  1: search.CatalogueSearchId searchId;
+  2: list<SearchResultStore> result;
+}
+
 
 service Neutrino {
 
@@ -72,5 +89,9 @@ service Neutrino {
   #/** Feed APIs */
   feed.Feed getCommonFeed(1:feed.FeedFilter filter) throws (1:NeutrinoException nex);
   feed.Feed getUserFeed(1:common.UserId userId, 2:feed.FeedFilter filter) throws (1:NeutrinoException nex);
+
+
+  #/** Search APIs */
+  SearchResult search(1:search.CatalogueSearchRequest request) throws (1:NeutrinoException nex);
 
 }
