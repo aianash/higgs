@@ -6,6 +6,7 @@ common_ttypes   = require path.join(__dirname, '../lib/common_types')
 neutrino_ttypes = require path.join(__dirname, '../lib/neutrino_types')
 shopplan_ttypes = require path.join(__dirname, '../lib/shopplan_types')
 search_ttypes   = require path.join(__dirname, '../lib/search_types')
+feed_ttypes     = require path.join(__dirname, '../lib/feed_types')
 
 Id = require path.join(__dirname, '/id')
 
@@ -13,14 +14,8 @@ Id = require path.join(__dirname, '/id')
 Convert = {}
 
 
-Convert.toCatalogueItemId = (stuid, cuid) ->
-  storeId = Convert.toStoreId stuid
-  new common_ttypes.CatalogueItemId {storeId, cuid}
-
-
-
 Convert.toItemTypes = (itemTypes) ->
-  itemTypes = _.isArray itemTypes ? itemTypes : [itemTypes]
+  itemTypes = if _.isArray(itemTypes) then itemTypes else [itemTypes]
   itemTypes = _.map itemTypes, (itemType) -> shopplan_ttypes.ItemTypes[itemType.Convert.toUpperCase()]
   _.filter itemTypes, _.identity
 
@@ -30,7 +25,7 @@ Convert.toItemTypes = (itemTypes) ->
 Convert.toCatalogueItem = (catalogueItem) ->
   {stuid, cuid} = catalogueItem
 
-  itemId       = Convert.toCatalogueItemId stuid, cuid
+  itemId       = Id.forCatalogueItem stuid, cuid
   serializerId = new common_ttypes.SerializerId {sid: 'unknown', stype: common_ttypes.SerializerType.UNKNOWN}
   stream       = catalogueItem.stream || ''  # [TO DO] encode and then set
 
@@ -152,15 +147,15 @@ Convert.toUserInfo = (info) ->
 
 
 Convert.toShopPlanStoreFields = (fields) ->
-  fields = _.isArray fields ? fields : [fields]
-  fields = _.map fields, (field) -> shopplan_ttypes.ShopPlanStoreField[field.Convert.toUpperCase()]
+  fields = if _.isArray(fields) then fields else [fields]
+  fields = _.map fields, (field) -> shopplan_ttypes.ShopPlanStoreField[field]
   _.filter fields, _.identity
 
 
 
 Convert.toShopPlanFields = (fields) ->
-  fields = _.isArray fields ? fields : [fields]
-  fields = _.map fields, (field) -> shopplan_ttypes.ShopPlanField[field.Convert.toUpperCase()]
+  fields = if _.isArray(fields) then fields else [fields]
+  fields = _.map fields, (field) -> shopplan_ttypes.ShopPlanField[field]
   _.filter fields, _.identity
 
 
@@ -194,7 +189,7 @@ Convert.toInvite = (uuid, suid, invite) ->
   name       = Convert.toUserName invite.name
   avatar     = Convert.toUserAvatar invite.avatar
 
-  new shopplan_types.Invite {friendId, shopplanId, name, avatar}
+  new shopplan_ttypes.Invite {friendId, shopplanId, name, avatar}
 
 
 
@@ -256,29 +251,16 @@ Convert.toCUDShopPlan = (uuid, suid, cud) ->
 ################################################
 
 Convert.toBucketStoreFields = (fields) ->
-  fields = _.isArray fields ? fields : [fields]
-  fields = _.map fields, (field) -> shopplan_ttypes.BucketStoreField[field.Convert.toUpperCase()]
+  fields = if _.isArray(fields) then fields else [fields]
+  fields = _.map fields, (field) -> shopplan_ttypes.BucketStoreField[field]
   _.filter fields, _.identity
 
 
 
-Convert.toBucketStore = (store) ->
-  {stuid, name, address, itemTypes, catalogueItems} = store
-
-  storeId        = Id.forStore stuid
-  name           = Convert.toStoreName name
-  address        = Convert.toPostalAddress address
-  itemTypes      = Convert.toItemTypes itemTypes ##
-  catalogueItems = Convert.toCatalogueItems catalogueItems ##
-
-  new shopplan_ttypes.BucketStore {storeId, name, address, itemTypes, catalogueItems}
-
-
-
 Convert.toCUDBucket = (cud) ->
-  adds = _.map cud.creates.stores, Convert.toBucketStore
+  adds = _.map cud.adds.itemIds, (itemId) -> Id.forCatalogueItem(itemId.stuid, itemId.cuid)
   adds = _.filter adds, _.identity
-  new shopplan_ttypes.CUDBucket {adds}
+  new neutrino_ttypes.CUDBucket {adds}
 
 
 ################################################

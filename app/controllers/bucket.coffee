@@ -11,40 +11,50 @@ Flatten   = require path.join(__dirname, '../utils/flatten')
 Get Bucket's Stores and items
 
 @params {uuid}    req.user.uuid       user's unique id
-@params {fields}  req.query.fields    comma separated shopplan fields
+@params {fields}  req.query.fields    comma separated bucket store fields
                                       possible values include
-                                      NAME, ADDRESS, ITEM_TYPES, CATALOGUE_ITEMS, CATALOGUE_ITEMS_IDS
+                                      Name, Address, ItemTypes, CatalogueItems, CatalogueItemIds
 
 @returns {Array.<Object>} stores      List of Bucket stores with details
                                       [
                                         {
-                                          stuid  : <Number>
-                                          name   : {
-                                            full   : <String>
-                                            handle : <String>
+                                          stuid: <Number>
+                                          storeType: <String>
+                                          info: {
+                                            name: {
+                                              full  : <String>
+                                              handle: <String>
+                                            }
+                                            itemTypes: [<String>]
+                                            address: {
+                                              gpsLoc  : {lat: <Double>, lng: <Double>}
+                                              title   : <String>
+                                              short   : <String>
+                                              full    : <String>
+                                              pincode : <String>
+                                              country : <String>
+                                              city    : <String>
+                                            }
+                                            avatar: {
+                                              small: <String>
+                                              medium: <String>
+                                              large: <String>
+                                            }
+                                            email: <String>
+                                            phoneContact: <Array.<String>>
                                           }
-                                          address: {
-                                            gpsLoc  : {lat: <Double>, lng: <Double>}
-                                            title   : <String>
-                                            short   : <String>
-                                            full    : <String>
-                                            pincode : <String>
-                                            country : <String>
-                                            city    : <String>
-                                          }
-                                          itemTypes: [ <String> ]
                                           catalogueItems: [
                                             {
                                               stuid : <Number>
                                               cuid  : <Number>
-                                              detail: <Catalogue detail Object>
+                                              detail: <Object>
                                             }, ...
                                           ]
                                         }, ...
                                       ]
 ###
 stores = (req, res) ->
-  fields = _.words req.query.fields || ''
+  fields = _.words(req.query.fields || '')
 
   da.Bucket.list req.user.uuid, fields
     .then (stores) -> res.send Flatten.bucketStores stores
@@ -66,29 +76,24 @@ Create/Update/Delete Bucket Store/Items
 @params {Object}  req.body        Create/Update/Delete details for bucket
                                   [cud]
                                   {
-                                    creates: {
-                                      stores: [
+                                    adds: {
+                                      itemIds: [
                                         {
                                           stuid: <Number>
-                                          itemTypes: [ <String> ]
-                                          catalogueItems: [
-                                            {
-                                              stuid: <Number>
-                                              cuid : <Number>
-                                            }, ...
-                                          ]
-                                        }
+                                          cuid : <Number>
+                                        }, ...
                                       ]
                                     }
+                                    // removals and updates not supported yet
                                   }
 
 @return {Boolean} success         True if successfully updated otherwise false
 ###
 cud = (req, res) ->
-  da.Bucket.cud req.user.uuid, req.body
+  da.Bucket.cudBucket req.user.uuid, req.body
     .then (success) -> res.send success
     .catch (err) ->
-      logger.log 'error', 'Error performing cud on plan', err.message. winston.exception.getTrace(err)
+      logger.log 'error', 'Error performing cud on bucket', err.message. winston.exception.getTrace(err)
       res.send
         error:
           message: err.message

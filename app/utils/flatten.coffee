@@ -17,13 +17,13 @@ ReverseStoreType = _.invert common_ttypes.StoreType
 Flatten = {}
 
 Flatten.locale = (locale) ->
-  if _.isString locale then locale.toUpperCase()
+  if _.isString(locale) and (locale of common_ttypes.Locale) then locale
   else if _.isNumber locale then ReverseLocale[locale]
   else null
 
 
 Flatten.gender = (gender) ->
-  if _.isString gender then gender.toLowerCase()
+  if _.isString(gender) and (gender of common_ttypes.Gender) then gender
   else if _.isNumber gender then ReverseGender[gender]
   else null
 
@@ -38,30 +38,30 @@ Flatten.facebookInfo = (facebookInfo) ->
 
 Flatten.userName = (name) ->
   name = _.pick name, _.identity
-  _.isEmpty name ? null : name
+  if _.isEmpty name then null else name
 
 
 Flatten.userAvatar = (avatar) ->
   avatar = _.pick avatar, _.identity
-  _.isEmpty avatar ? null : avatar
+  if _.isEmpty avatar then null else avatar
 
 
 
 Flatten.storeAvatar = (avatar) ->
   avatar = _.pick avatar, _.identity
-  _.isEmpty avatar ? null : avatar
+  if _.isEmpty avatar then null else avatar
 
 
 
 Flatten.storeName = (name) ->
   name = _.pick name, _.identity
-  _.isEmpty name ? null : name
+  if _.isEmpty name then null else name
 
 
 
 Flatten.postalAddress = (address) ->
   address = _.pick address, _.identity
-  _.isEmpty address ? null : address
+  if _.isEmpty address then null else address
 
 
 
@@ -72,7 +72,7 @@ Flatten.phoneContact = (phone) ->
 
 
 Flatten.itemType = (itemType) ->
-  if _.isString itemType then itemType.toUpperCase()
+  if _.isString(itemType) and (itemType of common_ttypes.ItemType) then itemType
   else if _.isNumber itemType then ReverseItemType[itemType]
   else null
 
@@ -82,17 +82,21 @@ Flatten.itemTypes = (itemTypes) ->
   _.filter itemTypes, _.identity
 
 
-Flatten.catalogueItem = (item) ->
+
+Flatten.jsonCatalogueItem = (item) ->
   stuid  = item.itemId.storeId.stuid
   cuid   = item.itemId.cuid
-  detail = {} # [TO DO] decoded from binary
+  detail = JSON.parse item.json if item.json?
 
-  {stuid, cuid, detail}
+  if stuid? and cuid? then {stuid, cuid, detail}
+  else null
 
 
-Flatten.catalogueItems = (items) ->
-  items = _.map items, Flatten.catalogueItem
+
+Flatten.jsonCatalogueItems = (items) ->
+  items = _.map items, Flatten.jsonCatalogueItem
   _.filter items, _.identity
+
 
 
 Flatten.userInfo = (info) ->
@@ -125,7 +129,7 @@ Flatten.friends = (friends) ->
 
 
 Flatten.storeType = (storeType) ->
-  if _.isString storeType then storeType.toUpperCase()
+  if _.isString(storeType) && (storeType of common_ttypes.StoreType) then storeType
   else if _.isNumber storeType then ReverseStoreType[storeType]
   else null
 
@@ -248,9 +252,11 @@ Flatten.invite = (invite) ->
   _.pick invite, _.identity
 
 
+
 Flatten.invites = (invites) ->
   invites = _.map invites, Flatten.invite
   _.filter invites, _.identity
+
 
 
 Flatten.shopPlan = (shopplan) ->
@@ -267,22 +273,26 @@ Flatten.shopPlan = (shopplan) ->
   _.pick shopplan, _.identity
 
 
+
 Flatten.shopPlans = (shopplans) ->
   shopplans = _.map shopplans, Flatten.shopPlan
   _.filter shopplans, _.identity
+
+
 
 ################ Bucket Flatteners #######################
 
 Flatten.bucketStore = (store) ->
   stuid          = store.stuid
-  name           = Flatten.storeName store.name
-  address        = Flatten.postalAddress store.address
-  itemTypes      = Flatten.itemTypes store.itemTypes
-  catalogueItems = Flatten.catalogueItems catalogueItems
+  storeType      = Flatten.storeType store.storeType
+  info           = Flatten.storeInfo store.info
+  catalogueItems = Flatten.jsonCatalogueItems catalogueItems
 
-  flattened = {stuid, name, address, itemTypes, catalogueItems}
+  flattened = {stuid, storeType, info, catalogueItems}
 
-  _.pick flattened, _.identity
+  store = _.pick flattened, _.identity
+  if _.isEmpty(store) then null else store
+
 
 
 Flatten.bucketStores = (stores) ->
@@ -302,14 +312,15 @@ Flatten.searchResultStore = (store) ->
   flattened = {stuid, storeType, info, items}
   store     = _.pick flattened, _.identity
 
-  _.isEmpty store ? null : store
+  if _.isEmpty store then null else store
 
 
 
 Flatten.searchResultStores = (stores) ->
   stores = _.map stores, Flatten.searchResultStore
   stores = _.filter stores, _.identity
-  _.isEmpty stores ? null : stores
+  if _.isEmpty stores then null else stores
+
 
 
 Flatten.searchResult = (searchResult) ->
