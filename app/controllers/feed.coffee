@@ -19,35 +19,38 @@ Get common feed
                                   page: <Number>
                                 }
 
-@returns {Array.<Object>} feed  List of posts (currently two types of posts)
-                                [
-                                  {
-                                    ptuid : <Number>
-                                    idx   : <Number>
-                                    type  : 'offer'
-                                    from  :
-                                      stuid  : <Number>
-                                      name   : {full: <String>, handle: <String>}
-                                      address: {
-                                        gpsLoc  : {lat: <Double>, lng: <Double>}
-                                        title   : <String>
-                                        short   : <String>
-                                        full    : <String>
-                                        pincode : <String>
-                                        country : <String>
-                                        city    : <String>
-                                      }
-                                    title   : <String>
-                                    subtitle: <String>
-                                  },
-                                  {
-                                    ptuid : <Number>
-                                    idx   : <Number>
-                                    type  : 'posterAd'
-                                    paduid: <Number>
-                                    image : <String>
-                                  }
-                                ]
+@returns {Object} feed          Feed result
+                                {
+                                  page: <Number>
+                                  feed: [
+                                    {
+                                      ptuid : <Number>
+                                      idx   : <Number>
+                                      type  : 'offer'
+                                      from  :
+                                        stuid  : <Number>
+                                        name   : {full: <String>, handle: <String>}
+                                        address: {
+                                          gpsLoc  : {lat: <Double>, lng: <Double>}
+                                          title   : <String>
+                                          short   : <String>
+                                          full    : <String>
+                                          pincode : <String>
+                                          country : <String>
+                                          city    : <String>
+                                        }
+                                      title   : <String>
+                                      subtitle: <String>
+                                    },
+                                    {
+                                      ptuid : <Number>
+                                      idx   : <Number>
+                                      type  : 'posterAd'
+                                      paduid: <Number>
+                                      image : <String>
+                                    }
+                                  ]
+                                }
 ###
 common = (req, res) ->
   da.Feed.getCommonFeed req.body
@@ -72,35 +75,38 @@ Get user feed
                                       page: <Number>
                                     }
 
-@returns {Array.<Object>} feed      List of posts (currently two types of posts)
-                                    [
-                                      {
-                                        ptuid : <Number>
-                                        idx   : <Number>
-                                        type  : 'offer'
-                                        from  :
-                                          stuid  : <Number>
-                                          name   : {full: <String>, handle: <String>}
-                                          address: {
-                                            gpsLoc  : {lat: <Double>, lng: <Double>}
-                                            title   : <String>
-                                            short   : <String>
-                                            full    : <String>
-                                            pincode : <String>
-                                            country : <String>
-                                            city    : <String>
-                                          }
-                                        title   : <String>
-                                        subtitle: <String>
-                                      },
-                                      {
-                                        ptuid : <Number>
-                                        idx   : <Number>
-                                        type  : 'posterAd'
-                                        paduid: <Number>
-                                        image : <String>
-                                      }
-                                    ]
+@returns {Object} feed              Feed result
+                                    {
+                                      page: <Number>
+                                      feed: [
+                                        {
+                                          ptuid : <Number>
+                                          idx   : <Number>
+                                          type  : 'offer'
+                                          from  :
+                                            stuid  : <Number>
+                                            name   : {full: <String>, handle: <String>}
+                                            address: {
+                                              gpsLoc  : {lat: <Double>, lng: <Double>}
+                                              title   : <String>
+                                              short   : <String>
+                                              full    : <String>
+                                              pincode : <String>
+                                              country : <String>
+                                              city    : <String>
+                                            }
+                                          title   : <String>
+                                          subtitle: <String>
+                                        },
+                                        {
+                                          ptuid : <Number>
+                                          idx   : <Number>
+                                          type  : 'posterAd'
+                                          paduid: <Number>
+                                          image : <String>
+                                        }
+                                      ]
+                                    }
 ###
 user = (req, res) ->
   da.Feed.getUserFeed req.user.uuid, req.body
