@@ -1,10 +1,7 @@
 path    = require 'path'
 winston = require 'winston'
 
-logger = require path.join(__dirname, '../utils/logger')
-
-da = {} # scoping under dataaccess (da)
-da.Feed = require path.join(__dirname, '../dataaccess/feed')
+logger  = require path.join(__dirname, '../utils/logger')
 Flatten = require path.join(__dirname, '../utils/flatten')
 
 
@@ -28,7 +25,7 @@ Get user complete info
 me = (req, res) ->
   req.user.getUserInfo()
     .then (info) ->
-      info = Flatten.userInfo info
+      info      = Flatten.userInfo info
       info.uuid = req.user.uuid
       res.send info
     .catch (err) ->
