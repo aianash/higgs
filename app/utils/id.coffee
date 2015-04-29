@@ -3,6 +3,7 @@ path = require 'path'
 common_ttypes   = require path.join(__dirname, '../lib/common_types')
 neutrino_ttypes = require path.join(__dirname, '../lib/neutrino_types')
 shopplan_ttypes = require path.join(__dirname, '../lib/shopplan_types')
+search_ttypes   = require path.join(__dirname, '../lib/search_types')
 
 
 forUser = module.exports.forUser = (uuid) -> new common_ttypes.UserId {uuid}
@@ -29,3 +30,8 @@ forCatalogueItem = module.exports.forCatalogueItem = (stuid, cuid) ->
   storeId = forStore stuid
   new common_ttypes.CatalogueItemId {cuid, storeId}
 
+
+
+forSearch = module.exports.forSearch = (uuid, sruid) ->
+  userId = forUser uuid
+  new search_ttypes.CatalogueSearchId {userId, sruid}

@@ -7,9 +7,12 @@ shopplan_ttypes = require path.join(__dirname, '../lib/shopplan_types')
 
 
 # Helper conversions
-ReverseItemType = _.invert shopplan_ttypes.ItemType
-ReverseLocale   = _.invert common_ttypes.Locale
-ReverseGender   = _.invert common_ttypes.Gender
+ReverseItemType  = _.invert shopplan_ttypes.ItemType
+ReverseLocale    = _.invert common_ttypes.Locale
+ReverseGender    = _.invert common_ttypes.Gender
+ReverseStoreType = _.invert common_ttypes.StoreType
+
+
 
 Flatten = {}
 
@@ -43,14 +46,29 @@ Flatten.userAvatar = (avatar) ->
   _.isEmpty avatar ? null : avatar
 
 
+
+Flatten.storeAvatar = (avatar) ->
+  avatar = _.pick avatar, _.identity
+  _.isEmpty avatar ? null : avatar
+
+
+
 Flatten.storeName = (name) ->
   name = _.pick name, _.identity
   _.isEmpty name ? null : name
 
 
+
 Flatten.postalAddress = (address) ->
   address = _.pick address, _.identity
   _.isEmpty address ? null : address
+
+
+
+Flatten.phoneContact = (phone) ->
+  numbers = _.filter phone.numbers, _.identity
+  {numbers}
+
 
 
 Flatten.itemType = (itemType) ->
@@ -103,6 +121,27 @@ Flatten.friend = (friend) ->
 Flatten.friends = (friends) ->
   friends = _.map friends, Flatten.friend
   _.filter friends, _.identity
+
+
+
+Flatten.storeType = (storeType) ->
+  if _.isString storeType then storeType.toUpperCase()
+  else if _.isNumber storeType then ReverseStoreType[storeType]
+  else null
+
+
+
+Flatten.storeInfo = (info) ->
+  name      = Flatten.storeName info.name
+  itemTypes = Flatten.itemTypes info.itemTypes
+  address   = Flatten.postalAddress info.address
+  avatar    = Flatten.storeAvatar info.avatar
+  email     = info.email
+  phone     = Flatten.phoneContact info.phone
+
+  storeInfo = {name, itemTypes, address avatar, email, phone}
+  _.pick storeInfo, _.identity
+
 
 
 ################ Feed Flatteners #####################
@@ -250,6 +289,36 @@ Flatten.bucketStores = (stores) ->
   stores = _.map stores, Flatten.bucketStore
   _.filter stores, _.identity
 
+
+
+################ Search Flatteners #######################
+
+Flatten.searchResultStore = (store) ->
+  stuid     = store.stuid
+  storeType = Flatten.storeType store.storeType
+  info      = Flatten.storeInfo store.info
+  items     = Flatten.jsonCatalogueItems store.items
+
+  flattened = {stuid, storeType, info, items}
+  store     = _.pick flattened, _.identity
+
+  _.isEmpty store ? null : store
+
+
+
+Flatten.searchResultStores = (stores) ->
+  stores = _.map stores, Flatten.searchResultStore
+  stores = _.filter stores, _.identity
+  _.isEmpty stores ? null : stores
+
+
+Flatten.searchResult = (searchResult) ->
+  sruid  = searchResult.searchId.sruid
+  result = Flatten.searchResultStores searchResult.result
+
+  flattened = {sruid, result}
+
+  _.pick flattened, _.identity
 
 
 module.exports = Flatten

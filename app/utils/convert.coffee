@@ -5,21 +5,25 @@ _    = require 'lodash'
 common_ttypes   = require path.join(__dirname, '../lib/common_types')
 neutrino_ttypes = require path.join(__dirname, '../lib/neutrino_types')
 shopplan_ttypes = require path.join(__dirname, '../lib/shopplan_types')
+search_ttypes   = require path.join(__dirname, '../lib/search_types')
 
 Id = require path.join(__dirname, '/id')
 
 
 Convert = {}
 
+
 Convert.toCatalogueItemId = (stuid, cuid) ->
   storeId = Convert.toStoreId stuid
   new common_ttypes.CatalogueItemId {storeId, cuid}
+
 
 
 Convert.toItemTypes = (itemTypes) ->
   itemTypes = _.isArray itemTypes ? itemTypes : [itemTypes]
   itemTypes = _.map itemTypes, (itemType) -> shopplan_ttypes.ItemTypes[itemType.Convert.toUpperCase()]
   _.filter itemTypes, _.identity
+
 
 
 # [NOTE] Right now only supports ids
@@ -33,6 +37,7 @@ Convert.toCatalogueItem = (catalogueItem) ->
   new common_ttypes.SerializedCatalogueItem {itemId, serializerId, stream}
 
 
+
 Convert.toCatalogueItems = (catalogueItems) ->
   catalogueItems = _.map catalogueItems, Convert.toCatalogueItem
   _.filter catalogueItems, _.identity
@@ -44,12 +49,14 @@ Convert.toGPSLocation = (gpsLoc) ->
   new common_ttypes.GPSLocation {lat, lng}
 
 
+
 Convert.toPostalAddress = (address) ->
   {gpsLoc, title, short, full, pincode, country, city} = address
 
   gpsLoc = Convert.toGPSLocation gpsLoc
 
   new shopplan_ttypes.PostalAddress {gpsLoc, title, short, full, pincode, country, city}
+
 
 
 Convert.toStoreName = (name) ->
@@ -82,7 +89,6 @@ Convert.toLocale = (locale) ->
 
 Convert.toGender = (gender) ->
   common_ttypes.Gender[gender.toUpperCase()]
-
 
 
 Convert.toFacebookInfo = (info) ->
@@ -172,6 +178,7 @@ Convert.toShopPlanStore = (uuid, suid, store) ->
   new shopplan_ttypes.ShopPlanStore {storeId, destId, name, address, itemTypes, catalogueItems}
 
 
+
 Convert.toDestination = (uuid, suid, dest) ->
   destId   = Id.forDestination uuid, suid, dest.dtuid
   address  = Convert.toPostalAddress dest.address
@@ -216,6 +223,7 @@ Convert.toCUDInvites = (uuid, suid, cud) ->
   new neutrino_ttypes.CUDInvites {adds, removals}
 
 
+
 Convert.toCUDDestination = (uuid, suid, cud) ->
   toDestination   = _.partial Convert.toDestination, uuid, suid
   toDestinationId = _.partial Id.forDestination, uuid, suid
@@ -253,6 +261,7 @@ Convert.toBucketStoreFields = (fields) ->
   _.filter fields, _.identity
 
 
+
 Convert.toBucketStore = (store) ->
   {stuid, name, address, itemTypes, catalogueItems} = store
 
@@ -270,6 +279,25 @@ Convert.toCUDBucket = (cud) ->
   adds = _.map cud.creates.stores, Convert.toBucketStore
   adds = _.filter adds, _.identity
   new shopplan_ttypes.CUDBucket {adds}
+
+
+################################################
+############# SEARCH DS CONVERSIONS  ###########
+################################################
+
+Convert.toCatalogueSearchQuery = (query) ->
+  queryText = query
+  new search_ttypes.CatalogueSearchQuery {queryText}
+
+
+
+Convert.toCatalogueSearchRequest = (uuid, sruid, query) ->
+  searchId  = Id.forSearch uuid, sruid
+  query     = Convert.toCatalogueSearchQuery query
+  pageIndex = query.pageIndex
+  pageSize  = query.pageSize
+
+  new search_ttypes.CatalogueSearchRequest {searchId, query, pageIndex, pageSize}
 
 
 module.exports = Convert
