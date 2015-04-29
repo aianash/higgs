@@ -28,7 +28,7 @@ module.exports.get = (uuid, suid, fields) ->
 
 
 
-module.exports.new = (uuid, cud) ->
+module.exports.create = (uuid, cud) ->
   cudShopPlan = Convert.toCUDShopPlan uuid, -1, cud  # -1 for unknown suid
 
   NeutrinoClient.get (client) ->

@@ -196,27 +196,25 @@ Flatten.feed = (feed) ->
 
 ################ ShopPlan Flatteners #####################
 
-Flatten.shopPlanId = (shopplanId) ->
-  suid      = shopplanId.suid
-  createdBy = shopplanId.createdBy?.uuid
-
-  if suid? and createdBy? then {suid, createdBy}
-  else null
-
-
 Flatten.shopPlanStore = (store) ->
   stuid          = store.storeId.stuid
   suid           = store.destId.shopplanId.suid
   createdBy      = store.destId.shopplanId.createdBy.uuid
   dtuid          = store.destId.dtuid
+  storeType      = Flatten.storeType store.storeType
+  info           = Flatten.storeInfo store.info
 
-  name           = Flatten.storeName store.name
-  address        = Flatten.postalAddress store.address
-  itemTypes      = Flatten.itemTypes store.itemTypes
-  catalogueItems = Flatten.catalogueItems store.catalogueItems
+  catalogueItems = Flatten.jsonCatalogueItems store.catalogueItems
 
-  store = {stuid, suid, createdBy, dtuid, name, address, itemTypes, catalogueItems}
-  _.pick store, _.identity
+  itemIds =
+    _.map store.itemIds, (itemId) ->
+      stuid = itemId.storeId.stuid
+      cuid  = itemId.cuid
+      {stuid, cuid}
+
+  store = {stuid, suid, createdBy, dtuid, storeType, info, catalogueItems, itemIds}
+  store = _.pick store, _.identity
+  if _.isEmpty(store) then null else store
 
 
 Flatten.shopPlanStores = (stores) ->

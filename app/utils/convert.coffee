@@ -193,26 +193,18 @@ Convert.toInvite = (uuid, suid, invite) ->
 
 
 
-Convert.toCUDDShopPlanStores = (uuid, suid, cud) ->
-  toShopPlanStore = _.partial Convert.toShopPlanStore, uuid, suid
+Convert.toCUDDShopPlanItems = (cud) ->
+  toCatalogueItemId = (itemId) -> Id.forCatalogueItem(itemId.stuid, itemId.cuid)
 
-  adds =
-    _.map cud.adds.stores, (store) ->
-      items = _.map store.catalogueItemIds, (cuid) -> {stuid: store.stuid, cuid}
-      store.catalogueItems = store.catalogueItems || items
-      store
+  adds     = _.map cud.adds.items, toCatalogueItemId
+  removals = _.map cud.removals.items, toCatalogueItemId
 
-  adds     = _.map adds, toShopPlanStore
-  removals = _.map cud.removals.stores, Id.forStore
-
-  new neutrino_ttypes.CUDShopPlanStores {adds, removals}
+  new neutrino_ttypes.CUDShopPlanItems {adds, removals}
 
 
 
 Convert.toCUDInvites = (uuid, suid, cud) ->
-  toInvite = _.partial Convert.toInvite, uuid, suid
-
-  adds     = _.map cud.adds.invites, toInvite
+  adds     = _.map cud.adds.invites, Id.forUser
   removals = _.map cud.removals.invites, Id.forUser
 
   new neutrino_ttypes.CUDInvites {adds, removals}
@@ -232,17 +224,18 @@ Convert.toCUDDestination = (uuid, suid, cud) ->
 
 
 Convert.toCUDShopPlanMeta = (meta) ->
-  new neutrino_ttypes.CUDShopPlanMeta {title: meta.title}
+  title = cud.updates.title
+  new neutrino_ttypes.CUDShopPlanMeta {title}
 
 
 
 Convert.toCUDShopPlan = (uuid, suid, cud) ->
-  meta         = Convert.toCUDShopPlanMeta {title: cud.title}
+  meta         = Convert.toCUDShopPlanMeta cud
   destinations = Convert.toCUDDestination uuid, suid, cud
   invites      = Convert.toCUDInvites cud
-  stores       = Convert.toCUDDShopPlanStores uuid, suid, cud
+  items        = Convert.toCUDDShopPlanItems cud
 
-  new neutrino_ttypes.CUDShopPlan {meta, destinations, invites, stores}
+  new neutrino_ttypes.CUDShopPlan {meta, destinations, invites, items}
 
 
 

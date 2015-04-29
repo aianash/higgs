@@ -17,74 +17,90 @@ List User's own or invited shop plans
                                       possible values include
                                       TITLE, STORES, CATALOGUE_ITEMS, DESTINATIONS, INVITES
 
-@returns {Array.<Object>} plans List of shop plans for the user
-                                [
-                                  {
-                                    createdBy: <Number>
-                                    suid     : <Number>
-                                    title    : <String>
-                                    stores: [
-                                      {
-                                        stuid    : <Number>
-                                        suid     : <Number>
-                                        createdBy: <Number>
-                                        dtuid    : <Number>
-                                        name: {
-                                          full   : <String>
-                                          handle : <String>
-                                        }
-                                        address: {
-                                          gpsLoc  : {lat: <Double>, lng: <Double>}
-                                          title   : <String>
-                                          short   : <String>
-                                          full    : <String>
-                                          pincode : <String>
-                                          country : <String>
-                                          city    : <String>
-                                        }
-                                        itemTypes: [ <String> ]
-                                        catalogueItems: [
-                                          {
-                                            stuid  : <Number>
-                                            cuid   : <Number>
-                                            detail: <Catalogue detail Object>
-                                          }, ...
-                                        ]
-                                      }, ...
-                                    ]
-                                    destinations: [
-                                      {
-                                        suid     : <Number>
-                                        createdBy: <number
-                                        dtuid    : <Number>
-                                        address: {
-                                          gpsLoc  : {lat: <Double>, lng: <Double>}
-                                          title   : <String>
-                                          short   : <String>
-                                          full    : <String>
-                                          pincode : <String>
-                                          country : <String>
-                                          city    : <String>
-                                        }
-                                        numShops: <Number>
-                                      }, ...
-                                    ]
-                                    invites: [
-                                      {
-                                        fruid      : <Number>
-                                        createdBy  : <Number>
-                                        suid       : <Number>
-                                        name       : {full: <String>, last: <String>, handle: <String>}
-                                        avatar     : {small: <String>, medium: <String>, large: <String>}
-                                      }, ...
-                                    ]
-                                    isInvitations: <Boolean>
-                                  }, ....
-                                ]
+@returns {Array.<Object>} plans       List of shop plans for the user
+                                      [
+                                        {
+                                          createdBy: <Number>
+                                          suid     : <Number>
+                                          title    : <String>
+                                          stores: [
+                                            {
+                                              stuid    : <Number>
+                                              suid     : <Number>
+                                              createdBy: <Number>
+                                              dtuid    : <Number>
+                                              storeType: <String>
+                                              info: {
+                                                name: {
+                                                  full  : <String>
+                                                  handle: <String>
+                                                }
+                                                itemTypes: [<String>]
+                                                address: {
+                                                  gpsLoc  : {lat: <Double>, lng: <Double>}
+                                                  title   : <String>
+                                                  short   : <String>
+                                                  full    : <String>
+                                                  pincode : <String>
+                                                  country : <String>
+                                                  city    : <String>
+                                                }
+                                                avatar: {
+                                                  small: <String>
+                                                  medium: <String>
+                                                  large: <String>
+                                                }
+                                                email: <String>
+                                                phoneContact: <Array.<String>>
+                                              }
+                                              catalogueItems: [
+                                                {
+                                                  stuid  : <Number>
+                                                  cuid   : <Number>
+                                                  detail : <Catalogue detail Object>
+                                                }, ...
+                                              ]
+                                              itemIds: [
+                                                {
+                                                  stuid: <Number>
+                                                  cuid : <Number>
+                                                }
+                                              ]
+                                            }, ...
+                                          ]
+                                          destinations: [
+                                            {
+                                              suid     : <Number>
+                                              createdBy: <number
+                                              dtuid    : <Number>
+                                              address: {
+                                                gpsLoc  : {lat: <Double>, lng: <Double>}
+                                                title   : <String>
+                                                short   : <String>
+                                                full    : <String>
+                                                pincode : <String>
+                                                country : <String>
+                                                city    : <String>
+                                              }
+                                              numShops: <Number>
+                                            }, ...
+                                          ]
+                                          invites: [
+                                            {
+                                              fruid      : <Number>
+                                              createdBy  : <Number>
+                                              suid       : <Number>
+                                              name       : {full: <String>, last: <String>, handle: <String>}
+                                              avatar     : {small: <String>, medium: <String>, large: <String>}
+                                            }, ...
+                                          ]
+                                          isInvitations: <Boolean>
+                                        }, ....
+                                      ]
 ###
 list = (req, res) ->
-  method = req.query.filter == 'invited' ? 'ownPlans' : 'invitedPlans'
-  fields = _.words req.query.fields || ""
+  method = if req.query.filter == 'invited' then 'invitedPlans' else 'ownPlans'
+  fields = _.words(req.query.fields || '')
 
   da.ShopPlan[method] req.user.uuid, fields
     .then (plans) -> res.send Flatten.shopPlans plans
@@ -100,60 +116,9 @@ list = (req, res) ->
 
 
 ###
-Create a new shop plan
-
-@params {uuid}    req.user.uuid       user's unique id
-@params {Object}  req.body            Shop plan details for creating it
-                                      {
-                                        creates: {
-                                          title: <String>
-                                          destinations: [
-                                            {
-                                              dtuid    : <Number>
-                                              address: {
-                                                gpsLoc: {lat: <Double>, lng: <Double>}
-                                              }
-                                              numShops: <Number|-1>
-                                            }, ...
-                                          ]
-                                          invites: [
-                                            {
-                                              fruid      : <Number>
-                                              name       : {full: <String>, last: <String>, handle: <String>}
-                                              avatar     : {small: <String>, medium: <String>, large: <String>}
-                                            }, ...
-                                          ]
-                                          stores: [
-                                            {
-                                              stuid    : <Number>
-                                              dtuid    : <Number|-1>
-                                              itemTypes: [ <String> ]
-                                              catalogueItemIds: [ <Number> ]
-                                            }, ...
-                                          ]
-                                        }
-                                      }
-
-@returns {Object}   shopplanId        {createdBy: <Number>, suid: <Number>}
-###
-create = (req, res) ->
-  da.ShopPlan.new req.user.uuid, req.body
-    .then (shopplanId) -> res.send Flatten.shopPlanId shopplanId
-    .catch (err) ->
-      logger.log('error', 'Error creating new plan for user', err.message, winston.exception.getTrace(err))
-      res.send
-        error:
-          message: err.message
-          type: typeof err
-    .done()
-
-
-
-
-###
 Get shop plan of user
 
-@params {uuid}    req.user.uuid       user's unique id
+@params {Number}  uuid                req.user.uuid or req.query.createdBy for shopplan's owner's unique id
 @params {suid}    req.params.suid     shop plan's unique id
 @params {fields}  req.query.fields    comma separated shopplan fields
                                       possible values include
@@ -170,26 +135,42 @@ Get shop plan of user
                                             suid     : <Number>
                                             createdBy: <Number>
                                             dtuid    : <Number>
-                                            name: {
-                                              full   : <String>
-                                              handle : <String>
+                                            storeType: <String>
+                                            info: {
+                                              name: {
+                                                full  : <String>
+                                                handle: <String>
+                                              }
+                                              itemTypes: [<String>]
+                                              address: {
+                                                gpsLoc  : {lat: <Double>, lng: <Double>}
+                                                title   : <String>
+                                                short   : <String>
+                                                full    : <String>
+                                                pincode : <String>
+                                                country : <String>
+                                                city    : <String>
+                                              }
+                                              avatar: {
+                                                small: <String>
+                                                medium: <String>
+                                                large: <String>
+                                              }
+                                              email: <String>
+                                              phoneContact: <Array.<String>>
                                             }
-                                            address: {
-                                              gpsLoc  : {lat: <Double>, lng: <Double>}
-                                              title   : <String>
-                                              short   : <String>
-                                              full    : <String>
-                                              pincode : <String>
-                                              country : <String>
-                                              city    : <String>
-                                            }
-                                            itemTypes: [ <String> ]
                                             catalogueItems: [
                                               {
                                                 stuid  : <Number>
                                                 cuid   : <Number>
                                                 detail: <Catalogue detail Object>
                                               }, ...
+                                            ]
+                                            itemIds: [
+                                              {
+                                                stuid: <Number>
+                                                cuid : <Number>
+                                              }
                                             ]
                                           }, ...
                                         ]
@@ -224,11 +205,54 @@ Get shop plan of user
 ###
 get = (req, res) ->
   fields = _.words req.query.fields || ""
+  uuid   = (+req.query.createdBy) || req.user.uuid
 
-  da.ShopPlan.get req.user.uuid, req.params.suid, fields
+  da.ShopPlan.get uuid, req.params.suid, fields
     .then (plan) -> res.send Flatten.shopPlan plan
     .catch (err) ->
       logger.log('error', 'Error getting plan', err.message, winston.exception.getTrace(err))
+      res.send
+        error:
+          message: err.message
+          type: typeof err
+    .done()
+
+
+
+
+###
+Create a new shop plan
+
+@params {uuid}    req.user.uuid       user's unique id
+@params {Object}  req.body            Shop plan details for creating it
+                                      {
+                                        adds: {
+                                          destinations: [
+                                            {
+                                              dtuid    : <Number>
+                                              address  : {
+                                                gpsLoc: {lat: <Double>, lng: <Double>}
+                                              }
+                                              numShops: <Number|-1>
+                                            }, ...
+                                          ]
+                                          invites: [ <Number> ]
+                                          items  : [
+                                            {
+                                              stuid : <Number>
+                                              cuid  : <Number>
+                                            }, ...
+                                          ]
+                                        }
+                                      }
+
+@returns {Object}   shopplanId        {createdBy: <Number>, suid: <Number>}
+###
+create = (req, res) ->
+  da.ShopPlan.create req.user.uuid, req.body
+    .then (shopplanId) -> res.send Flatten.shopPlanId shopplanId
+    .catch (err) ->
+      logger.log('error', 'Error creating new plan for user', err.message, winston.exception.getTrace(err))
       res.send
         error:
           message: err.message
@@ -249,25 +273,17 @@ Create/Update/Delete Shop plan's components
                                           destinations: [
                                             {
                                               dtuid    : <Number>
-                                              address: {
+                                              address  : {
                                                 gpsLoc: {lat: <Double>, lng: <Double>}
                                               }
                                               numShops: <Number|-1>
                                             }, ...
                                           ]
-                                          invites: [
+                                          invites: [ <Number> ]
+                                          items  : [
                                             {
-                                              fruid      : <Number>
-                                              name       : {full: <String>, last: <String>, handle: <String>}
-                                              avatar     : {small: <String>, medium: <String>, large: <String>}
-                                            }, ...
-                                          ]
-                                          stores: [
-                                            {
-                                              stuid    : <Number>
-                                              dtuid    : <Number|-1>
-                                              itemTypes: [ <String> ]
-                                              catalogueItemIds: [ <Number> ]
+                                              stuid : <Number>
+                                              cuid  : <Number>
                                             }, ...
                                           ]
                                         }
@@ -286,7 +302,12 @@ Create/Update/Delete Shop plan's components
                                         removals: {
                                           destinations: [ <Number> ]
                                           invites     : [ <Number> ]
-                                          stores      : [ <Number> ]
+                                          items       : [
+                                            {
+                                              stuid : <Number>
+                                              cuid  : <Number>
+                                            }
+                                          ]
                                         }
                                       }
 
