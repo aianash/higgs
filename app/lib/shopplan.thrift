@@ -21,8 +21,10 @@ enum BucketStoreField {
   Name              = 1;
   Address           = 2;
   ItemTypes         = 3;
-  CatalogueItems    = 4;
-  CatalogueItemIds  = 5;
+  Avatar            = 4;
+  Contacts          = 5;
+  CatalogueItems    = 6;
+  CatalogueItemIds  = 7;
 }
 
 struct BucketStore {

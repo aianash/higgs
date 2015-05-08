@@ -1,6 +1,6 @@
 {
   "server": {
-    "port": 8080,
+    "port": 8001,
     "host": "higgs.com"
   },
   "api": {

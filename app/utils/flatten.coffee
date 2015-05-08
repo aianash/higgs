@@ -143,7 +143,7 @@ Flatten.storeInfo = (info) ->
   email     = info.email
   phone     = Flatten.phoneContact info.phone
 
-  storeInfo = {name, itemTypes, address avatar, email, phone}
+  storeInfo = {name, itemTypes, address, avatar, email, phone}
   _.pick storeInfo, _.identity
 
 
