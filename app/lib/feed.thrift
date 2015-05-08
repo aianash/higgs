@@ -1,7 +1,7 @@
 include 'common.thrift'
 
-namespace java com.goshoplane.feed
-namespace js goshoplane.feed
+namespace java com.goshoplane.neutrino.feed
+namespace js neutrino.feed
 
 typedef i32    PageIndex
 typedef i32    StreamIndex
@@ -51,6 +51,7 @@ struct PosterAdPost {
 struct Feed {
   1: list<OfferPost> offerPosts;
   2: list<PosterAdPost> posterAdPosts;
+  3: PageIndex page;
 }
 
 

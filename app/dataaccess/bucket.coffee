@@ -5,11 +5,12 @@ NeutrinoClient = require path.join(__dirname, '../lib/neutrino-client')
 Id             = require path.join(__dirname, '../utils/id')
 Convert        = require path.join(__dirname, '../utils/convert')
 
-module.exports.getCommonFeed = (filter) ->
+
+module.exports.getBucketStores = (uuid, fields) ->
   NeutrinoClient.get (client) ->
-    client.q.getCommonFeed Convert.toFeedFilter(filter)
+    client.q.getBucketStores Id.forUser(uuid), Convert.toBucketStoreFields(fields)
 
 
-module.exports.getUserFeed = (uuid, filter) ->
+module.exports.cudBucket = (uuid, cud) ->
   NeutrinoClient.get (client) ->
-    client.q.getUserFeed Id.forUser(uuid), Convert.toFeedFilter(filter)
+    client.q.cudBucket Id.forUser(uuid), Convert.toCUDBucket(cud)

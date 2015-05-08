@@ -19,7 +19,7 @@ signOpts =
 # Create a new token for the userId
 # and update it in the database
 exports.newToken = (user) ->
-  Q(jwt.sign(id: user.id, privatecert, signOpts))
+  Q(jwt.sign(uuid: user.uuid, privatecert, signOpts))
 
 
 

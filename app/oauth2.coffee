@@ -29,7 +29,7 @@ server.exchange 'token', oauth2orize.exchange.clientCredentials (userInfo, scope
   createAccessToken = (user) ->
     if not user then return Q.reject(new Error('null user received'))
 
-    da.AccessToken.newToken(user)
+    da.AccessToken.newToken user
       .then (token) -> done null, token
 
 
@@ -44,7 +44,7 @@ server.exchange 'token', oauth2orize.exchange.clientCredentials (userInfo, scope
 
   ####
 
-  return da.User.createOrUpdate(userInfo)
+  return da.User.createOrUpdate userInfo
       .spread sendVerificationMail
       .then createAccessToken
       .catch handleError

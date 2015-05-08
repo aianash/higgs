@@ -1,87 +1,89 @@
 include 'common.thrift'
 include 'shopplan.thrift'
 include 'feed.thrift'
+include 'search.thrift'
+
 
 namespace java com.goshoplane.neutrino.service
 namespace js neutrino.service
 
-typedef string FBToken
-
+typedef string Json
 exception NeutrinoException {
   1: string message;
-}
-
-
-struct ModifyShopPlanReq {
-  1: set<common.StoreId> stores;
-  2: set<common.CatalogueItemId> items;
-  3: set<common.UserId> invites;
-}
-
-
-struct AddDestinationReq {
-  1: common.GPSLocation location;
-  2: shopplan.DestinationOrder order;
-}
-
-
-struct UpdateDestinationReq {
-  1: shopplan.DestinationId destId;
-  2: optional common.GPSLocation location;
-  3: optional shopplan.DestinationOrder order;
-}
-
-
-struct FacebookInfo {
-  1: common.UserId userId
-  2: FBToken token
-}
-
-struct UserInfo {
-  1: optional common.UserId userId;
-  2: optional common.UserName names;
-  3: optional common.Locale locale;
-  4: optional common.Gender gender;
-  5: optional FacebookInfo facebookInfo;
-  6: optional common.Email email;
-  7: optional common.Timezone timezone;
-  8: optional common.UserAvatar avatar;
-  9: optional bool isNew;
 }
 
 struct FriendListFilter {
   1: optional common.PostalAddress location;
 }
 
+struct CUDDestinations {
+  1: optional list<shopplan.Destination> adds;
+  2: optional list<shopplan.Destination> updates;
+  3: optional list<shopplan.DestinationId> removals;
+}
+
+struct CUDInvites {
+  1: optional list<common.UserId> adds;
+  2: optional list<common.UserId> removals;
+}
+
+struct CUDShopPlanItems {
+  1: optional list<common.CatalogueItemId> adds;
+  2: optional list<common.CatalogueItemId> removals;
+}
+
+struct CUDShopPlanMeta {
+  1: optional string title;
+}
+
+struct CUDShopPlan {
+  1: optional CUDShopPlanMeta meta;
+  2: optional CUDDestinations destinations;
+  3: optional CUDInvites invites;
+  4: optional CUDShopPlanItems items;
+}
+
+struct CUDBucket {
+  1: optional list<common.CatalogueItemId> adds;
+  // [TO REVISIT] no deletions at present.
+}
+
+struct SearchResultStore {
+  1: common.StoreId storeId;
+  2: common.StoreType storeType;
+  3: common.StoreInfo info;
+  4: list<common.JsonCatalogueItem> items;
+}
+
+
+struct SearchResult {
+  1: search.CatalogueSearchId searchId;
+  2: list<SearchResultStore> result;
+}
+
 
 service Neutrino {
 
   #/** User APIs */
-  UserInfo createOrUpdateUser(1:UserInfo userInfo) throws (1:NeutrinoException nex);
-  UserInfo getUserDetail(1:common.UserId userId) throws (1:NeutrinoException nex);
+  common.UserId createUser(1:common.UserInfo userInfo) throws (1:NeutrinoException nex);
+  bool updateUser(1:common.UserId userId, 2:common.UserInfo userInfo) throws (1:NeutrinoException nex);
+  common.UserInfo getUserDetail(1:common.UserId userId) throws (1:NeutrinoException nex);
+  list<shopplan.Friend> getFriendsForInvite(1:common.UserId userId, 2:FriendListFilter filter) throws (1:NeutrinoException nex);
 
 
-  #/** ShopPlan CRUD apis */
-  list<shopplan.ShopPlan> getShopPlansFor(1:common.UserId userId) throws (1:NeutrinoException nex);
-  shopplan.ShopPlan getShopPlan(1:shopplan.ShopPlanId shopplanId) throws (1:NeutrinoException nex);
-  shopplan.ShopPlan newShopPlanFor(1:common.UserId userId) throws (1:NeutrinoException nex);
+  #/** Bucket APIs */
+  list<shopplan.BucketStore> getBucketStores(1:common.UserId userId, 2:list<shopplan.BucketStoreField> fields) throws (1:NeutrinoException nex);
+  bool cudBucket(1:common.UserId userId, 2:CUDBucket cud) throws (1:NeutrinoException nex);
+
+  #/** ShopPlan APIs */
+  list<shopplan.ShopPlanStore> getShopPlanStores(1:shopplan.ShopPlanId shopplanId, 2:list<shopplan.ShopPlanStoreField> fields) throws (1:NeutrinoException nex);
+  list<shopplan.ShopPlan> getOwnShopPlans(1:common.UserId userId, 2:list<shopplan.ShopPlanField> fields) throws (1:NeutrinoException nex);
+  shopplan.ShopPlan getShopPlan(1:shopplan.ShopPlanId shopplanId, 2:list<shopplan.ShopPlanField> fields) throws (1:NeutrinoException nex);
+  list<shopplan.ShopPlan> getInvitedShopPlans(1:common.UserId userId, 2:list<shopplan.ShopPlanField> fields) throws (1:NeutrinoException nex);
+
+  shopplan.ShopPlanId createShopPlan(1:common.UserId userId, 2:CUDShopPlan cud) throws (1:NeutrinoException nex);
+  bool cudShopPlan(1:shopplan.ShopPlanId shopplanId, 2:CUDShopPlan cud) throws (1:NeutrinoException nex);
   bool endShopPlan(1:shopplan.ShopPlanId shopplanId) throws (1:NeutrinoException nex);
-
-  bool addToShopPlan(1:shopplan.ShopPlanId shopplanId, 2:ModifyShopPlanReq addReq) throws (1:NeutrinoException nex);
-  bool removeFromShopPlan(1:shopplan.ShopPlanId shopplanId, 2:ModifyShopPlanReq removeReq) throws (1:NeutrinoException nex);
-
-  set<shopplan.Friend> getInvitedUsers(1:shopplan.ShopPlanId shopplanId) throws (1:NeutrinoException nex);
-  set<shopplan.Friend> getFriendsForInvite(1:shopplan.ShopPlanId shopplanId, 2:FriendListFilter filter) throws (1:NeutrinoException nex);
-
-  set<common.GPSLocation> getStoreLocations(1:shopplan.ShopPlanId shopplanId) throws (1:NeutrinoException nex);
-
-  set<shopplan.Destination> getDestinations(1:shopplan.ShopPlanId shopplanId) throws (1:NeutrinoException nex);
-  set<shopplan.Destination> addDestinations(1:shopplan.ShopPlanId shopplanId, 2:set<AddDestinationReq> addReqs) throws (1:NeutrinoException nex);
-  bool updateDestinations(1:set<UpdateDestinationReq> updateReqs) throws (1:NeutrinoException nex);
-  bool removeDestinations(1:set<shopplan.DestinationId> destIds) throws (1:NeutrinoException nex);
-
-  #/** Search APIs */
-
 
 
   #/** Feed APIs */
@@ -89,7 +91,7 @@ service Neutrino {
   feed.Feed getUserFeed(1:common.UserId userId, 2:feed.FeedFilter filter) throws (1:NeutrinoException nex);
 
 
-  #/** Messaging APIs */
-
+  #/** Search APIs */
+  SearchResult search(1:search.CatalogueSearchRequest request) throws (1:NeutrinoException nex);
 
 }

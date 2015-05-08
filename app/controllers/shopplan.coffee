@@ -1,17 +1,109 @@
-Q               = require 'q'
-path            = require 'path'
-winston         = require 'winston'
+path    = require 'path'
+winston = require 'winston'
 
 
-logger          = require path.join(__dirname, '../utils/logger')
+logger  = require path.join(__dirname, '../utils/logger')
 
 da = {} # scoping under dataaccess (da)
-da.ShopPlan     = require path.join(__dirname, '../dataaccess/shopplan')
+da.ShopPlan = require path.join(__dirname, '../dataaccess/shopplan')
+Flatten     = require path.join(__dirname, '../utils/flatten')
 
 
+###
+List User's own or invited shop plans
+
+@params {uuid}    req.user.uuid       user's unique id
+@params {fields}  req.query.fields    comma separated shopplan fields
+                                      possible values include
+                                      TITLE, STORES, CATALOGUE_ITEMS, DESTINATIONS, INVITES
+
+@returns {Array.<Object>} plans       List of shop plans for the user
+                                      [
+                                        {
+                                          createdBy: <Number>
+                                          suid     : <Number>
+                                          title    : <String>
+                                          stores: [
+                                            {
+                                              stuid    : <Number>
+                                              suid     : <Number>
+                                              createdBy: <Number>
+                                              dtuid    : <Number>
+                                              storeType: <String>
+                                              info: {
+                                                name: {
+                                                  full  : <String>
+                                                  handle: <String>
+                                                }
+                                                itemTypes: [<String>]
+                                                address: {
+                                                  gpsLoc  : {lat: <Double>, lng: <Double>}
+                                                  title   : <String>
+                                                  short   : <String>
+                                                  full    : <String>
+                                                  pincode : <String>
+                                                  country : <String>
+                                                  city    : <String>
+                                                }
+                                                avatar: {
+                                                  small: <String>
+                                                  medium: <String>
+                                                  large: <String>
+                                                }
+                                                email: <String>
+                                                phoneContact: <Array.<String>>
+                                              }
+                                              catalogueItems: [
+                                                {
+                                                  stuid  : <Number>
+                                                  cuid   : <Number>
+                                                  detail : <Catalogue detail Object>
+                                                }, ...
+                                              ]
+                                              itemIds: [
+                                                {
+                                                  stuid: <Number>
+                                                  cuid : <Number>
+                                                }
+                                              ]
+                                            }, ...
+                                          ]
+                                          destinations: [
+                                            {
+                                              suid     : <Number>
+                                              createdBy: <number
+                                              dtuid    : <Number>
+                                              address: {
+                                                gpsLoc  : {lat: <Double>, lng: <Double>}
+                                                title   : <String>
+                                                short   : <String>
+                                                full    : <String>
+                                                pincode : <String>
+                                                country : <String>
+                                                city    : <String>
+                                              }
+                                              numShops: <Number>
+                                            }, ...
+                                          ]
+                                          invites: [
+                                            {
+                                              fruid      : <Number>
+                                              createdBy  : <Number>
+                                              suid       : <Number>
+                                              name       : {full: <String>, last: <String>, handle: <String>}
+                                              avatar     : {small: <String>, medium: <String>, large: <String>}
+                                            }, ...
+                                          ]
+                                          isInvitations: <Boolean>
+                                        }, ....
+                                      ]
+###
 list = (req, res) ->
-  da.ShopPlan.all req.user.id
-    .then (plans) -> res.send plans
+  method = if req.query.filter == 'invited' then 'invitedPlans' else 'ownPlans'
+  fields = _.words(req.query.fields || '')
+
+  da.ShopPlan[method] req.user.uuid, fields
+    .then (plans) -> res.send Flatten.shopPlans plans
     .catch (err) ->
       logger.log('error', 'Error getting all plans of user', err.message, winston.exception.getTrace(err))
       res.send
@@ -22,22 +114,101 @@ list = (req, res) ->
 
 
 
-createNew = (req, res) ->
-  da.ShopPlan.new req.user.id
-    .then (plan) -> res.send plan
-    .catch (err) ->
-      logger.log('error', 'Error creating new plan for user', err.message, winston.exception.getTrace(err))
-      res.send
-        error:
-          message: err.message
-          type: typeof err
-    .done()
 
+###
+Get shop plan of user
 
+@params {Number}  uuid                req.user.uuid or req.query.createdBy for shopplan's owner's unique id
+@params {suid}    req.params.suid     shop plan's unique id
+@params {fields}  req.query.fields    comma separated shopplan fields
+                                      possible values include
+                                      TITLE, STORES, CATALOGUE_ITEMS, DESTINATIONS, INVITES
 
-detail = (req, res) ->
-  da.ShopPlan.get req.user.id, req.params.planId
-    .then (plan) -> res.send plan
+@returns {Object} plan                shop plan detail for the user
+                                      {
+                                        createdBy: <Number>
+                                        suid     : <Number>
+                                        title    : <String>
+                                        stores: [
+                                          {
+                                            stuid    : <Number>
+                                            suid     : <Number>
+                                            createdBy: <Number>
+                                            dtuid    : <Number>
+                                            storeType: <String>
+                                            info: {
+                                              name: {
+                                                full  : <String>
+                                                handle: <String>
+                                              }
+                                              itemTypes: [<String>]
+                                              address: {
+                                                gpsLoc  : {lat: <Double>, lng: <Double>}
+                                                title   : <String>
+                                                short   : <String>
+                                                full    : <String>
+                                                pincode : <String>
+                                                country : <String>
+                                                city    : <String>
+                                              }
+                                              avatar: {
+                                                small: <String>
+                                                medium: <String>
+                                                large: <String>
+                                              }
+                                              email: <String>
+                                              phoneContact: <Array.<String>>
+                                            }
+                                            catalogueItems: [
+                                              {
+                                                stuid  : <Number>
+                                                cuid   : <Number>
+                                                detail: <Catalogue detail Object>
+                                              }, ...
+                                            ]
+                                            itemIds: [
+                                              {
+                                                stuid: <Number>
+                                                cuid : <Number>
+                                              }
+                                            ]
+                                          }, ...
+                                        ]
+                                        destinations: [
+                                          {
+                                            suid     : <Number>
+                                            createdBy: <number
+                                            dtuid    : <Number>
+                                            address: {
+                                              gpsLoc  : {lat: <Double>, lng: <Double>}
+                                              title   : <String>
+                                              short   : <String>
+                                              full    : <String>
+                                              pincode : <String>
+                                              country : <String>
+                                              city    : <String>
+                                            }
+                                            numShops: <Number>
+                                          }, ...
+                                        ]
+                                        invites: [
+                                          {
+                                            fruid      : <Number>
+                                            createdBy  : <Number>
+                                            suid       : <Number>
+                                            name       : {full: <String>, last: <String>, handle: <String>}
+                                            avatar     : {small: <String>, medium: <String>, large: <String>}
+                                          }, ...
+                                        ]
+                                        isInvitations: <Boolean>
+                                      }
+###
+get = (req, res) ->
+  fields = _.words req.query.fields || ""
+  uuid   = (+req.query.createdBy) || req.user.uuid
+
+  da.ShopPlan.get uuid, req.params.suid, fields
+    .then (plan) -> res.send Flatten.shopPlan plan
     .catch (err) ->
       logger.log('error', 'Error getting plan', err.message, winston.exception.getTrace(err))
       res.send
@@ -48,8 +219,121 @@ detail = (req, res) ->
 
 
 
+
+###
+Create a new shop plan
+
+@params {uuid}    req.user.uuid       user's unique id
+@params {Object}  req.body            Shop plan details for creating it
+                                      {
+                                        adds: {
+                                          destinations: [
+                                            {
+                                              dtuid    : <Number>
+                                              address  : {
+                                                gpsLoc: {lat: <Double>, lng: <Double>}
+                                              }
+                                              numShops: <Number|-1>
+                                            }, ...
+                                          ]
+                                          invites: [ <Number> ]
+                                          items  : [
+                                            {
+                                              stuid : <Number>
+                                              cuid  : <Number>
+                                            }, ...
+                                          ]
+                                        }
+                                      }
+
+@returns {Object}   shopplanId        {createdBy: <Number>, suid: <Number>}
+###
+create = (req, res) ->
+  da.ShopPlan.create req.user.uuid, req.body
+    .then (shopplanId) -> res.send Flatten.shopPlanId shopplanId
+    .catch (err) ->
+      logger.log('error', 'Error creating new plan for user', err.message, winston.exception.getTrace(err))
+      res.send
+        error:
+          message: err.message
+          type: typeof err
+    .done()
+
+
+
+
+###
+Create/Update/Delete Shop plan's components
+
+@params {uuid}    req.user.uuid       user's unique id
+@params {suid}    req.params.suid     shop plan's unique id
+@params {Object}  req.body            Create/Update/Delete details for shop plan
+                                      {
+                                        adds: {
+                                          destinations: [
+                                            {
+                                              dtuid    : <Number>
+                                              address  : {
+                                                gpsLoc: {lat: <Double>, lng: <Double>}
+                                              }
+                                              numShops: <Number|-1>
+                                            }, ...
+                                          ]
+                                          invites: [ <Number> ]
+                                          items  : [
+                                            {
+                                              stuid : <Number>
+                                              cuid  : <Number>
+                                            }, ...
+                                          ]
+                                        }
+                                        updates: {
+                                          title: <String>
+                                          destinations: [
+                                            {
+                                              dtuid    : <Number>
+                                              address: {
+                                                gpsLoc: {lat: <Double>, lng: <Double>}
+                                              }
+                                              numShops: <Number|-1>
+                                            }, ...
+                                          ]
+                                        }
+                                        removals: {
+                                          destinations: [ <Number> ]
+                                          invites     : [ <Number> ]
+                                          items       : [
+                                            {
+                                              stuid : <Number>
+                                              cuid  : <Number>
+                                            }
+                                          ]
+                                        }
+                                      }
+
+@returns {boolean} success            True if update is successful otherwise false
+###
+cud = (req, res) ->
+  da.ShopPlan.cud req.user.uuid, req.params.suid, req.body
+    .then (success) -> res.send success
+    .catch (err) ->
+      logger.log('error', 'Error performing cud on plan', err.message, winston.exception.getTrace(err))
+      res.send
+        error:
+          message: err.message
+          type: typeof err
+    .done()
+
+
+
+
+###
+@params   {uuid}      req.user.uuid       user's unique id
+@params   {suid}      req.params.suid     shop plan's unique id
+@returns  {boolean}   success             True if update successful otherwise false
+###
 end = (req, res) ->
-  da.ShopPlan.end req.user.id, req.params.planId
+  da.ShopPlan.end req.user.uuid, req.params.suid
     .then (success) -> res.send success
     .catch (err) ->
       logger.log('error', 'Couldnt end the plan', err.message, winston.exception.getTrace(err))
@@ -60,116 +344,54 @@ end = (req, res) ->
     .done()
 
 
+###
+Get Shop Plan's stores
 
-add = (req, res) ->
-  da.ShopPlan.addToShopPlan req.user.id, req.params.planId, req.body
-    .then (success) -> res.send success
+@params   {uuid}      req.user.uuid       user's unique id
+@params   {suid}      req.params.suid     shop plan's unique id
+@params {fields}      req.query.fields    comma separated shopplan fields
+                                          possible values include
+                                          TITLE, STORES, CATALOGUE_ITEMS, DESTINATIONS, INVITES
+
+@returns {Array.<Object>} stores          List of Shop Plan stores
+                                          [
+                                            {
+                                              stuid    : <Number>
+                                              suid     : <Number>
+                                              createdBy: <Number>
+                                              dtuid    : <Number>
+                                              name: {
+                                                full   : <String>
+                                                handle : <String>
+                                              }
+                                              address: {
+                                                gpsLoc  : {lat: <Double>, lng: <Double>}
+                                                title   : <String>
+                                                short   : <String>
+                                                full    : <String>
+                                                pincode : <String>
+                                                country : <String>
+                                                city    : <String>
+                                              }
+                                              itemTypes: [ <String> ]
+                                              catalogueItems: [
+                                                {
+                                                  stuid  : <Number>
+                                                  cuid   : <Number>
+                                                  detail: <Catalogue detail Object>
+                                                }, ...
+                                              ]
+                                            }, ...
+                                          ]
+
+###
+stores = (req, res) ->
+  fields = _.words req.query.fields || ""
+
+  da.ShopPlan.stores req.user.uuid, req.params.suid, fields
+    .then (stores) -> res.send Flatten.shopPlanStores stores
     .catch (err) ->
-      logger.log('error', 'Error adding to plan', err.message, winston.exception.getTrace(err))
-      res.send
-        error:
-          message: err.message
-          type: typeof err
-    .done()
-
-
-
-remove = (req, res) ->
-  da.ShopPlan.removeFromShopPlan req.user.id, req.params.planId, req.body
-    .then (success) -> res.send success
-    .catch (err) ->
-      logger.log('error', 'Error removing from plan', err.message, winston.exception.getTrace(err))
-      res.send
-        error:
-          message: err.message
-          type: typeof err
-    .done()
-
-
-
-invites = (req, res) ->
-  da.ShopPlan.getInvitedUsers req.user.id, req.params.planId
-    .then (users) -> res.send users
-    .catch (err) ->
-      logger.log('error', 'Error getting invited users', err.message, winston.exception.getTrace(err))
-      res.send
-        error:
-          message: err.message
-          type: typeof err
-    .done()
-
-
-
-friends = (req, res) ->
-  da.ShopPlan.getFriendsForInvite req.user.id, req.params.planId, req.body
-    .then (friends) -> res.send friends
-    .catch (err) ->
-      logger.log('error', 'Error getting friends to invite for plan', err.message, winston.exception.getTrace(err))
-      res.send
-        error:
-          message: err.message
-          type: typeof err
-    .done()
-
-
-
-storeLocations = (req, res) ->
-  da.ShopPlan.getStoreLocations req.user.id, req.params.planId
-    .then (locations) -> res.send locations
-    .catch (err) ->
-      logger.log('error', 'Error getting store locations', err.message, winston.exception.getTrace(err))
-      res.send
-        error:
-          message: err.message
-          type: typeof err
-    .done()
-
-
-
-destinations = (req, res) ->
-  da.ShopPlan.getDestinations req.user.id, req.params.planId
-    .then (destinations) -> res.send destinations
-    .catch (err) ->
-      logger.log('error', 'Error get destinations', err.message, winston.exception.getTrace(err))
-      res.send
-        error:
-          message: err.message
-          type: typeof err
-    .done()
-
-
-
-addDestinations = (req, res) ->
-  da.ShopPlan.addDestinations req.user.id, req.params.planId, req.body
-    .then (destinations) -> res.send destinations
-    .catch (err) ->
-      logger.log('error', 'Error adding destinations', err.message, winston.exception.getTrace(err))
-      res.send
-        error:
-          message: err.message
-          type: typeof err
-    .done()
-
-
-
-updateDestinations = (req, res) ->
-  da.ShopPlan.updateDestinations req.user.id, req.params.planId, req.body
-    .then (success) -> res.send success
-    .catch (err) ->
-      logger.log('error', 'Error updating destinations', err.message, winston.exception.getTrace(err))
-      res.send
-        error:
-          message: err.message
-          type: typeof err
-    .done()
-
-
-
-removeDestinations = (req, res) ->
-  da.ShopPlan.removeDestinations req.user.id, req.params.planId, req.body
-    .then (success) -> res.send success
-    .catch (err) ->
-      logger.log('error', 'Error removing destinations', err.message, winston.exception.getTrace(err))
+      logger.log 'error', 'Couldnt get stores for the plan', err.message, winston.exception.getTrace(err)
       res.send
         error:
           message: err.message
@@ -179,16 +401,9 @@ removeDestinations = (req, res) ->
 
 
 # Handlers for request
-exports.list                = list
-exports.createNew           = createNew
-exports.detail              = detail
-exports.add                 = add
-exports.remove              = remove
-exports.end                 = end
-exports.invites             = invites
-exports.friends             = friends
-exports.storeLocations      = storeLocations
-exports.destinations        = destinations
-exports.addDestinations     = addDestinations
-exports.updateDestinations  = updateDestinations
-exports.removeDestinations  = removeDestinations
+exports.list      = list
+exports.create    = create
+exports.get       = get
+exports.cud       = cud
+exports.end       = end
+exports.stores    = stores
