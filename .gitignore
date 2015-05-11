@@ -32,3 +32,11 @@ Icon
 # phpstorm IDE ignore files
 .idea/
 *.7z
+
+logs
+project/project
+project/target
+target
+tmp
+dist
+.cache
