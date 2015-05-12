@@ -1,10 +1,23 @@
 package actions
 
 import scala.concurrent.Future
+import scala.util.control.NonFatal
+import scala.util.{Try, Success, Failure}
+import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext.Implicits.global
 
 import play.api.mvc._, Results._
+import play.api.Play.current
+import play.api.Logger
 
 import models.User
+import actors._
+
+import scalaz._, Scalaz._
+
+import goshoplane.commons.core.protocols._, Implicits._
+
+import akka.util.Timeout
 
 
 /**
@@ -21,17 +34,28 @@ case class AuthRequest[A](val user: Option[User], request: Request[A])
  */
 object Authenticate extends ActionBuilder[AuthRequest] {
 
-  def invokeBlock[A](
-    request: Request[A],
-    block: (AuthRequest[A]) => Future[Result]) = {
+  val log = Logger(this.getClass)
 
-    val user =
-      for {
+  def invokeBlock[A](request: Request[A], block: (AuthRequest[A]) => Future[Result]) = {
+
+    // Calling here, so that plugins get a chance to initialize
+    val AuthService = Actors.authService
+
+    val userFO =
+      (for {
         token <- request.queryString.get("accessToken").flatMap(_.headOption)
-        user  <- User.fromAccessToken(token)
-      } yield user
+      } yield {
+        implicit val timeout = Timeout(1 seconds) // [TO DO] set a proper value, this is too much
+                                                  // should never reach this much
+        val userF = AuthService ?= VerifyTokenAndGetUser(token)
+        userF.map(_.some) recover {
+          case NonFatal(ex) =>
+            log.error(s"Caught error [${ex.getMessage}] while verifying token and getting user", ex)
+            None
+        }
+      }) getOrElse Future.successful(None) // when no access token altogether
 
-    block(AuthRequest(user, request))
+    userFO flatMap(userO => block(AuthRequest(userO, request)))
   }
 
 }

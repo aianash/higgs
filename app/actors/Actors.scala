@@ -11,6 +11,7 @@ import com.twitter.finagle.thrift.ThriftClientFramedCodecFactory
 
 import com.goshoplane.neutrino.service._
 
+
 /**
  * Companion object, primarily to access [[akka.actor.ActorRef]] of
  * client actors
@@ -21,7 +22,8 @@ object Actors {
     .getOrElse(sys.error("Actors plugin not registered"))
 
   def feedClient(implicit app: Application) = actors.feedClient
-
+  def authService(implicit app: Application) = actors.authService
+  def userClient(implicit app: Application) = actors.userClient
 }
 
 
@@ -54,6 +56,7 @@ class Actors(app: Application) extends Plugin {
   }
 
   // lazily create a the feed client actor
-  private lazy val feedClient = system.actorOf(FeedClient.props(neutrino), "feedClient")
-
+  private lazy val feedClient  = system.actorOf(FeedClient.props(neutrino), "feedClient")
+  private lazy val authService = system.actorOf(AuthService.props(neutrino), "authService")
+  private lazy val userClient  = system.actorOf(UserClient.props(neutrino), "userClient")
 }
