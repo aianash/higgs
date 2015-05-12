@@ -11,6 +11,7 @@ import com.twitter.finagle.thrift.ThriftClientFramedCodecFactory
 
 import com.goshoplane.neutrino.service._
 
+
 /**
  * Companion object, primarily to access [[akka.actor.ActorRef]] of
  * client actors

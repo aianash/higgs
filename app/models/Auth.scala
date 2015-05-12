@@ -13,6 +13,11 @@ import com.goshoplane.common._
  */
 case class FBAuthInfo(fbUserId: UserId, token: String, clientId: String)
 
+
+/**
+ * Json combinators i.e. Reads, Writes, and Format
+ * for Auth related structures
+ */
 trait AuthJsonCombinators {
 
   // user id

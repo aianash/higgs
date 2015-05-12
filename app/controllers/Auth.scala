@@ -17,6 +17,7 @@ import goshoplane.commons.core.protocols._, Implicits._
 import actors._
 import models._
 
+
 /**
  * Controller for Auth (ie receiving access token) for
  * app authenticated used (thru Facebook)
@@ -27,6 +28,8 @@ object Auth extends Controller with AuthJsonCombinators {
 
   // service to verifying token
   private val AuthService = Actors.authService
+
+  //////////////////// Controller Actions (mapped to Route) ///////////////////////////
 
   /**
    * Get higgs access token for a verified fb auth info
