@@ -21,6 +21,7 @@ object Actors {
     .getOrElse(sys.error("Actors plugin not registered"))
 
   def feedClient(implicit app: Application) = actors.feedClient
+  def authService(implicit app: Application) = actors.authService
 
 }
 
@@ -55,5 +56,5 @@ class Actors(app: Application) extends Plugin {
 
   // lazily create a the feed client actor
   private lazy val feedClient = system.actorOf(FeedClient.props(neutrino), "feedClient")
-
+  private lazy val authService = system.actorOf(AuthService.props(neutrino), "authService")
 }
