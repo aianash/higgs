@@ -5,6 +5,8 @@
 # OAuth token endpoint
 POST        /v1/oauth/token 			controllers.Auth.token
 
+# User REST APIs
+GET 	    /v1/me  					controllers.User.me
 
 # Feed REST APIs
 GET			/v1/feed/common				controllers.Feed.common

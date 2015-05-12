@@ -26,6 +26,8 @@ trait AuthJsonCombinators {
     Format(userIdReads, userIdWrites)
 
   // read for FBAuthInfo
-  protected implicit val fbAuthInfoReads = Json.reads[FBAuthInfo]
-
+  protected val fbAuthInfoReads = Json.reads[FBAuthInfo]
+  protected val fbAuthInfoWrites = Json.writes[FBAuthInfo]
+  protected implicit val fbAuthInfoFormat: Format[FBAuthInfo] =
+    Format(fbAuthInfoReads, fbAuthInfoWrites)
 }
