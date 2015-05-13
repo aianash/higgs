@@ -11,3 +11,7 @@ GET 	    /v1/me  					controllers.User.me
 # Feed REST APIs
 GET			/v1/feed/common				controllers.Feed.common
 GET			/v1/feed/user				controllers.Feed.user
+
+# Bucket REST APIs
+GET 	    /v1/bucket/stores 			controllers.Bucket.stores(fields: String ?= "")
+POST 		/v1/bucket/cud 				controllers.Bucket.cud
