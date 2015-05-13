@@ -21,3 +21,6 @@ GET         /v1/shopplan/list/own       controllers.ShopPlan.listOwn(fields: Str
 POST        /v1/shopplan/create         controllers.ShopPlan.create
 GET         /v1/shopplan/:suid          controllers.ShopPlan.get(suid: Long, fields: String ?= "Title,Stores,Destinations")
 DELETE      /v1/shopplan/:suid          controllers.ShopPlan.end(suid: Long)
+
+# Search REST APIs
+POST        /v1/search/:sruid           controllers.Search.search(sruid: Long)
