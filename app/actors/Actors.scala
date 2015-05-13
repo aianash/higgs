@@ -25,6 +25,7 @@ object Actors {
   def authService(implicit app: Application) = actors.authService
   def userClient(implicit app: Application) = actors.userClient
   def bucketClient(implicit app: Application) = actors.bucketClient
+  def shopPlanClient(implicit app: Application) = actors.shopPlanClient
 }
 
 
@@ -61,4 +62,5 @@ class Actors(app: Application) extends Plugin {
   private lazy val authService  = system.actorOf(AuthService.props(neutrino), "authService")
   private lazy val userClient   = system.actorOf(UserClient.props(neutrino), "userClient")
   private lazy val bucketClient = system.actorOf(BucketClient.props(neutrino), "bucketClient")
+  private lazy val shopPlanClient = system.actorOf(ShopPlanClient.props(neutrino), "bucketClient")
 }

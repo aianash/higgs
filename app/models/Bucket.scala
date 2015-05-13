@@ -26,11 +26,6 @@ trait BucketJsonCombinators {
       }
     }
 
-  protected implicit val fieldsReads: Reads[Seq[BucketStoreField]] =
-    Reads[Seq[BucketStoreField]] { json =>
-      traversableReads[Seq, BucketStoreField].reads(json)
-    }
-
 
   // StoreId
   protected val storeIdReads: Reads[StoreId] =
@@ -59,9 +54,6 @@ trait BucketJsonCombinators {
   protected implicit val itemTypeWrites: Writes[ItemType] =
     Writes(it => JsString(it.name))
 
-  protected implicit val itemTypesWrites: Writes[Seq[ItemType]] =
-    Writes(its => JsArray(its.map(Json.toJson(_))))
-
 
   // GPSLocation
   protected implicit val gpsLocationWrites: Writes[GPSLocation] = (
@@ -86,7 +78,7 @@ trait BucketJsonCombinators {
 
 
   // StoreAvatar
-  protected implicit val userAvatarWrites: Writes[StoreAvatar] = (
+  protected implicit val storeAvatarWrites: Writes[StoreAvatar] = (
     (__ \ "small")  .writeNullable[String] ~
     (__ \ "medium") .writeNullable[String] ~
     (__ \ "large")  .writeNullable[String]
@@ -119,9 +111,6 @@ trait BucketJsonCombinators {
   protected implicit val jsonCatalogueItemWrites: Writes[JsonCatalogueItem] =
     Writes(item => Json.parse(item.json))
 
-  protected implicit val jsonCatalogueItemsWrites: Writes[Seq[JsonCatalogueItem]] =
-    Writes(items => JsArray(items.map(Json.toJson(_))))
-
 
   // BucketStore
   protected implicit val bucketStoreWrites: Writes[BucketStore] = (
@@ -140,11 +129,6 @@ trait BucketJsonCombinators {
     (__ \ "storeId").read[StoreId] ~
     (__ \ "ctuid")  .read[Long]
   )(CatalogueItemId.apply _)
-
-  protected implicit val catalogueItemIdsReads: Reads[Seq[CatalogueItemId]] =
-    Reads[Seq[CatalogueItemId]] { json =>
-      traversableReads[Seq, CatalogueItemId].reads(json)
-    }
 
 
   // CUDBucket
