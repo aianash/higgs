@@ -1,0 +1,3 @@
+# Bucket REST APIs
+GET         /v1/bucket/stores           controllers.bucket.Bucket.stores(fields: String ?= "")
+POST        /v1/bucket/cud              controllers.bucket.Bucket.cud

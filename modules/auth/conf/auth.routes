@@ -1,0 +1,2 @@
+# OAuth token endpoint
+POST        /v1/oauth/token             controllers.auth.Auth.token

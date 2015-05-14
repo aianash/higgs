@@ -1,0 +1,5 @@
+# Shopplan REST APIs
+GET         /v1/shopplan/list/own       controllers.shopplan.ShopPlan.listOwn(fields: String ?= "Title,Stores,Destinations")
+POST        /v1/shopplan/create         controllers.shopplan.ShopPlan.create
+GET         /v1/shopplan/:suid          controllers.shopplan.ShopPlan.get(suid: Long, fields: String ?= "Title,Stores,Destinations")
+DELETE      /v1/shopplan/:suid          controllers.shopplan.ShopPlan.end(suid: Long)

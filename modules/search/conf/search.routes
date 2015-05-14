@@ -1,0 +1,3 @@
+
+# Search REST APIs
+POST        /v1/search/:sruid           controllers.search.Search.search(sruid: Long)
