@@ -37,7 +37,6 @@ object Auth extends Controller with AuthJsonCombinators {
    */
   def token = Action.async(parse.json[FBAuthInfo]) { implicit request =>
     val fbInfo = request.body
-
     implicit val timeout = Timeout(1 seconds) // [TO DO] Configure timeouts
 
     val tokenF = AuthService ?= VerifyAndGetTokenFor(fbInfo)
@@ -47,7 +46,7 @@ object Auth extends Controller with AuthJsonCombinators {
           BadRequest(Json.obj("error" -> JsString(msg)))
 
         case NonFatal(ex) =>
-          log.error("Caught error [${ex.getMessage}] while creating token", ex)
+          log.error(s"Caught error [${ex.getMessage}] while creating token", ex)
           InternalServerError(Json.obj("error" -> JsString("Some internal error while creating token")))
       }
   }

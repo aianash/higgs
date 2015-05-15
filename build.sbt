@@ -16,9 +16,11 @@ lazy val shopplan = (project in file("modules/shopplan")).enablePlugins(PlayScal
 
 lazy val user = (project in file("modules/user")).enablePlugins(PlayScala).dependsOn(common, auth)
 
+lazy val integrationTest = (project in file("integration_test")).dependsOn(common)
+
 lazy val root = (project in file("."))
   .enablePlugins(PlayScala)
   .dependsOn(common, auth, bucket, feed, search, shopplan, user)
-  .aggregate(common, auth, bucket, feed, search, shopplan, user)
+  .aggregate(common, auth, bucket, feed, search, shopplan, user, integrationTest)
 
 scalacOptions ++= Seq("-feature",  "-language:postfixOps")
