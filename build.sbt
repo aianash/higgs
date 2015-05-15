@@ -23,4 +23,4 @@ lazy val root = (project in file("."))
   .dependsOn(common, auth, bucket, feed, search, shopplan, user)
   .aggregate(common, auth, bucket, feed, search, shopplan, user, integrationTest)
 
-scalacOptions ++= Seq("-feature",  "-language:postfixOps")
+scalacOptions ++= Seq("-feature",  "-language:postfixOps", "-language:reflectiveCalls")

@@ -5,3 +5,5 @@
 # Include other route files
 -> 			/ 			auth.Routes
 -> 			/ 			user.Routes
+-> 			/ 			search.Routes
+-> 			/ 			bucket.Routes
