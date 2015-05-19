@@ -20,7 +20,7 @@ object TestHiggs {
 
   private val log = Logger(this.getClass)
 
-  private val FBToken = "CAALYIU6LOQsBAAkp3KleNNdAA61rrwyZBth92ZC4fzkxjAdZAVI1s7gM6yIdSwnqehqWBm3gDRODuTI3jJvXf3Am2gYZC3jLobIEq9Ta6ZAFiEKEwsZBZB0IrjqGYedhmoTIcLVzY8OD5Q0pwtN1EzEvqr96olcvg5INCZBVrvenZBFZAVVhIVTtNev3dZCgCmCuaxadkx2jxmVl8bMJZBmaVSaBGL4iZBvcpU32CD5b2YefmOwZDZD"
+  private val FBToken = "CAALYIU6LOQsBAPqPxrxIB4jRsIigr2KXt4zan164tcz3ZCMIYWC6ZAzd7S6KPA8diC6eY5VYScoesXJYpxSSAJt3PgSBMxSHRt5oZBoj68hLq6rXtRdLdJATsy9mWZAuH9ZCaIexMChG7KasObZABmC6ysJtrFhwzWYdvZCWgphWFXV86jpICZB7Uaj9DpEVOmsozE3XzowBup2fkZBIXQNwjY9jq72YBUhKUjtPSdKZC39AZDZD"
   private val BASE_URL = "http://127.0.0.1:9000/v1/"
 
 
@@ -69,8 +69,38 @@ object TestHiggs {
               }
       } andThen {
         case Failure(NonFatal(ex)) => log.error("Caught error while getting user info", ex)
-        case Success(user) => println(s"Received user info = $user")
+        case Success(user) => println(Json.prettyPrint(user))
       }
+
+    /**
+     * Get user feed
+     */
+    val feedF =
+      tokenF flatMap { token =>
+        val filter = Json.obj(
+          "location" -> Json.obj(
+            "gpsLoc" -> Json.obj(
+              "lat" -> 12.9336479,
+              "lng" -> 77.6300757
+            )
+          ),
+          "page" -> 1
+        )
+
+        val elapsed = lapse.Stopwatch.start()
+        client.url(BASE_URL + "feed/user")
+              .withHeaders("Content-Type" -> "text/json")
+              .withQueryString("accessToken" -> token)
+              .post(filter).map { response => response.json }
+              .andThen {
+                case Failure(NonFatal(ex)) => log.error("Caught error while getting user feed", ex)
+                case Success(result) =>
+                  timeRecord.put("Got user feed", elapsed())
+                  println("\n============== USER FEED ================\n")
+                  println(Json.prettyPrint(result))
+              }
+      }
+
 
     /**
      * Search for the query
@@ -222,6 +252,7 @@ object TestHiggs {
       for {
         _ <- tokenF
         _ <- userInfoF
+        _ <- feedF
         _ <- resultF
         _ <- cudBucketF
         _ <- storesF

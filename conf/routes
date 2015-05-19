@@ -8,3 +8,4 @@
 -> 			/ 			search.Routes
 -> 			/ 			bucket.Routes
 -> 			/ 			shopplan.Routes
+-> 			/ 			feed.Routes
