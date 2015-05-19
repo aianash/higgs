@@ -112,7 +112,7 @@ class AuthService(neutrino: Neutrino$FinagleClient) extends Actor with ActorLogg
 
     val fbClient = new DefaultFacebookClient(fbAuthInfo.token, fbAppSecret, Version.VERSION_2_0)
     val me = new BatchRequestBuilder("me").build()
-    val picture = new BatchRequestBuilder("me/picture?redirect=false").build()
+    val picture = new BatchRequestBuilder("me/picture?redirect=false&type=normal").build()
 
     try {
       val responses = fbClient.executeBatch(me, picture)
@@ -126,22 +126,25 @@ class AuthService(neutrino: Neutrino$FinagleClient) extends Actor with ActorLogg
         handle = (mejson \ "name").asOpt[String])
 
       val avatar = UserAvatar(
-        small  = (picturejson \ "url").asOpt[String],
-        medium = (picturejson \ "url").asOpt[String],
-        large  = (picturejson \ "url").asOpt[String])
+        small  = (picturejson \ "data" \ "url").asOpt[String],
+        medium = (picturejson \ "data" \ "url").asOpt[String],
+        large  = (picturejson \ "data" \ "url").asOpt[String])
 
       val facebookInfo = FacebookInfo(
         userId = UserId((mejson \ "id").as[String].toLong),
         token  = fbAuthInfo.token.some)
 
+      val localeO = (mejson \ "locale").asOpt[String]
+                      .flatMap(l =>
+                        Locale.valueOf(l.toUpperCase.replaceAllLiterally("_", "")))
       UserInfo(
         name         = name.some,
         facebookInfo = facebookInfo.some,
         avatar       = avatar.some,
-        locale       = (mejson \ "locale").asOpt[String].flatMap(l => Locale.valueOf(l.toUpperCase)),
+        locale       = localeO,
         gender       = (mejson \ "gender").asOpt[String].flatMap(g => Gender.valueOf(g.toUpperCase)),
         email        = (mejson \ "email").asOpt[String],
-        timezone     = (mejson \ "timezone").asOpt[String],
+        timezone     = (mejson \ "timezone").asOpt[Float].map(_.toString),
         isNew        = Some(true)
       )
     } catch {
