@@ -30,7 +30,6 @@ class BucketClient(neutrino: Neutrino$FinagleClient) extends Actor with ActorLog
     case GetBucketStores(userId, fields) =>
       neutrino.getBucketStores(userId, fields).as[Future[Seq[BucketStore]]]
       .andThen {
-        case scala.util.Success(e) => println(e)
         case Failure(NonFatal(ex)) =>
           log.error(ex, "Caught error [{}] while getting bucket stores for user = {}",
                         ex.getMessage,

@@ -7,3 +7,4 @@
 -> 			/ 			user.Routes
 -> 			/ 			search.Routes
 -> 			/ 			bucket.Routes
+-> 			/ 			shopplan.Routes
