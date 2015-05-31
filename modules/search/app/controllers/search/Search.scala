@@ -69,7 +69,7 @@ object Search extends Controller with SearchJsonCombinators {
       implicit val timeout = Timeout(100 seconds)
 
       val resultF = SearchClient ?= SearchCatalogue(catalogueSearchRequest)
-      resultF.map(r => Ok(Json.toJson(r))).recover {
+      resultF.map({r => Ok(Json.toJson(r))}).recover {
         case NonFatal(ex) =>
           log.error(s"Caught error [${ex.getMessage}] while getting search result", ex)
           InternalServerError(Json.obj("error" -> JsString("Couldn't fetch search result for search id = ${searchId.userId.uuid}.${searchId.sruid}")))

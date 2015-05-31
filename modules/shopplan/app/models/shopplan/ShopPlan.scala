@@ -17,10 +17,10 @@ trait ShopPlanJsonCombinators {
 
   // UserId
   protected val userIdReads: Reads[UserId] =
-    (__ \ "uuid").read[Long].map(UserId(_))
+    (__ \ "uuid").read[String].map(id => UserId(id.toLong))
 
   protected val userIdWrites: Writes[UserId] =
-    (__ \ "uuid").write[Long].contramap[UserId](_.uuid)
+    (__ \ "uuid").write[String].contramap[UserId](_.uuid.toString)
 
   protected implicit val userIdFormat: Format[UserId] =
     Format(userIdReads, userIdWrites)
@@ -29,13 +29,13 @@ trait ShopPlanJsonCombinators {
   // ShopPlanId
   protected val shopplanIdReads: Reads[ShopPlanId] = (
     (__ \ "createdBy").read[UserId] ~
-    (__ \ "suid")     .read[Long]
+    (__ \ "suid")     .read[String].map(_.toLong)
   )(ShopPlanId.apply _)
 
   protected val shopplanIdWrites: Writes[ShopPlanId] = (
     (__ \ "createdBy").write[UserId] ~
-    (__ \ "suid")     .write[Long]
-  ) { id: ShopPlanId => (id.createdBy, id.suid) }
+    (__ \ "suid")     .write[String]
+  ) { id: ShopPlanId => (id.createdBy, id.suid.toString) }
 
   protected implicit val shopplanIdFormat: Format[ShopPlanId] =
     Format(shopplanIdReads, shopplanIdWrites)
@@ -43,10 +43,10 @@ trait ShopPlanJsonCombinators {
 
   // StoreId
   protected val storeIdReads: Reads[StoreId] =
-    (__ \ "stuid").read[Long].map(StoreId(_))
+    (__ \ "stuid").read[String].map(id => StoreId(id.toLong))
 
   protected val storeIdWrites: Writes[StoreId] =
-    (__ \ "stuid").write[Long].contramap[StoreId](_.stuid)
+    (__ \ "stuid").write[String].contramap[StoreId](_.stuid.toString)
 
   protected implicit val storeIdFormat: Format[StoreId] =
     Format(storeIdReads, storeIdWrites)
@@ -55,13 +55,13 @@ trait ShopPlanJsonCombinators {
   // DestinationId
   protected val destinationIdReads: Reads[DestinationId] = (
     (__ \ "shopplanId").read[ShopPlanId] ~
-    (__ \ "dtuid")     .read[Long]
+    (__ \ "dtuid")     .read[String].map(_.toLong)
   )(DestinationId.apply _)
 
   protected val destinationIdWrites: Writes[DestinationId] = (
     (__ \ "shopplanId").write[ShopPlanId] ~
-    (__ \ "dtuid")     .write[Long]
-  ) { id: DestinationId => (id.shopplanId, id.dtuid) }
+    (__ \ "dtuid")     .write[String]
+  ) { id: DestinationId => (id.shopplanId, id.dtuid.toString) }
 
   protected implicit val destinationIdForma: Format[DestinationId] =
     Format(destinationIdReads, destinationIdWrites)
@@ -160,13 +160,13 @@ trait ShopPlanJsonCombinators {
   // CatalogueItemId
   val catalogueItemIdReads: Reads[CatalogueItemId] = (
     (__ \ "storeId").read[StoreId] ~
-    (__ \ "ctuid")  .read[Long]
+    (__ \ "cuid")   .read[String].map(_.toLong)
   )(CatalogueItemId.apply _)
 
   val catalogueItemIdWrites: Writes[CatalogueItemId] = (
     (__ \ "storeId").write[StoreId] ~
-    (__ \ "ctuid")  .write[Long]
-  ) { cid: CatalogueItemId => (cid.storeId, cid.cuid)}
+    (__ \ "cuid")   .write[String]
+  ) { cid: CatalogueItemId => (cid.storeId, cid.cuid.toString)}
 
   protected implicit val catalogueItemIdFormat: Format[CatalogueItemId] =
     Format(catalogueItemIdReads, catalogueItemIdWrites)

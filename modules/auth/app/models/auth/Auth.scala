@@ -22,10 +22,10 @@ trait AuthJsonCombinators {
 
   // user id
   protected val userIdReads: Reads[UserId] =
-    (__ \ "uuid").read[Long].map(UserId(_))
+    (__ \ "uuid").read[String].map(id => UserId(id.toLong))
 
   protected val userIdWrites: Writes[UserId] =
-    (__ \ "uuid").write[Long].contramap[UserId](_.uuid)
+    (__ \ "uuid").write[String].contramap[UserId](_.uuid.toString)
 
   protected implicit val userIdFormat: Format[UserId] =
     Format(userIdReads, userIdWrites)

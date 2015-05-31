@@ -20,8 +20,8 @@ trait SearchJsonCombinators extends models.shopplan.ShopPlanJsonCombinators {
 
   protected implicit val catalogueSearchIdWrites: Writes[CatalogueSearchId] = (
     (__ \ "userId").write[UserId] ~
-    (__ \ "sruid") .write[Long]
-  ) { id: CatalogueSearchId => (id.userId, id.sruid) }
+    (__ \ "sruid") .write[String]
+  ) { id: CatalogueSearchId => (id.userId, id.sruid.toString) }
 
   protected implicit val searchResultStoreWrites = Json.writes[SearchResultStore]
   protected implicit val searchResultWrites = Json.writes[SearchResult]

@@ -20,8 +20,8 @@ object TestHiggs {
 
   private val log = Logger(this.getClass)
 
-  private val FBToken = "CAALYIU6LOQsBAPqPxrxIB4jRsIigr2KXt4zan164tcz3ZCMIYWC6ZAzd7S6KPA8diC6eY5VYScoesXJYpxSSAJt3PgSBMxSHRt5oZBoj68hLq6rXtRdLdJATsy9mWZAuH9ZCaIexMChG7KasObZABmC6ysJtrFhwzWYdvZCWgphWFXV86jpICZB7Uaj9DpEVOmsozE3XzowBup2fkZBIXQNwjY9jq72YBUhKUjtPSdKZC39AZDZD"
-  private val BASE_URL = "http://127.0.0.1:9000/v1/"
+  private val FBToken = "CAALYIU6LOQsBAFrh1gHxEpDJc764jWuzXp4UxPSkYmvzWIZCZBZCC6fAZAEDgKuOcOS2qeLB8e4ShZBSBiD92DpezNybLJ9HKxIZCluMORxGHDvMzY1Ut9T4hVZAdDThKYVYyTswIDJYiHNS8nIIthzJiljIJKqVs1zDxS2FKLFR9tnkpSOoZAvbHiRPZAK2QpM6h3ZCZBvOyZBqhkZC9Oxk5aB0Y0FnBvirpitNjFVZAgpFEusQZDZD"
+  private val BASE_URL = "http://192.168.1.38:9000/v1/"
 
 
   def main(args: Array[String]) {
