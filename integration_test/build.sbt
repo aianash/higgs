@@ -1,4 +1,4 @@
-import com.typesafe.sbt.SbtStartScript
+// import com.typesafe.sbt.SbtStartScript
 
 name := "higgs-integration-tests"
 
@@ -9,4 +9,4 @@ libraryDependencies ++= Seq(
   "me.lessis" %% "lapse" % "0.1.0"
 )
 
-seq(SbtStartScript.startScriptForClassesSettings: _*)
+// seq(SbtStartScript.startScriptForClassesSettings: _*)
