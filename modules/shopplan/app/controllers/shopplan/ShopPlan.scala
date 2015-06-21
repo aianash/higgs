@@ -7,6 +7,7 @@ import scala.util.control.NonFatal
 import play.api.mvc._
 import play.api.Play.current
 import play.api.libs.json._
+import play.api.Logger
 
 import akka.util.Timeout
 
@@ -29,6 +30,8 @@ import models.shopplan._
  */
 object ShopPlan extends Controller with ShopPlanJsonCombinators {
 
+  val log = Logger(this.getClass)
+
   // ShopPlan client actor
   private val ShopPlanClient = Actors.shopPlanClient
 
@@ -48,6 +51,7 @@ object ShopPlan extends Controller with ShopPlanJsonCombinators {
     val shopplansF = ShopPlanClient ?= GetOwnShopPlans(request.user.get.id, fields)
     shopplansF.map(s => Ok(Json.toJson(s))).recover {
       case NonFatal(ex) =>
+        log.error(s"Caught error [${ex.getMessage}] while fetching user's own shopplans", ex)
         InternalServerError(Json.obj("error" -> JsString("Couldn't fetch user's own shopplans")))
     }
   }
@@ -68,6 +72,7 @@ object ShopPlan extends Controller with ShopPlanJsonCombinators {
     val shopplanF = ShopPlanClient ?= GetShopPlan(shopplanId, fields)
     shopplanF.map(s => Ok(Json.toJson(s))).recover {
       case NonFatal(ex) =>
+        log.error(s"Caught error [${ex.getMessage}] while getting shopplan's details", ex)
         InternalServerError(Json.obj("error" -> JsString("Couldn't fetch shopplan")))
     }
   }
@@ -129,6 +134,7 @@ object ShopPlan extends Controller with ShopPlanJsonCombinators {
     val shopplanIdF = ShopPlanClient ?= CreateShopPlan(request.user.get.id, cud)
     shopplanIdF.map(s => Ok(Json.toJson(s))).recover {
       case NonFatal(ex) =>
+        log.error(s"Caught error [${ex.getMessage}] while create shop plan", ex)
         InternalServerError(Json.obj("error" -> JsString("Couldn't create shopplan")))
     }
   }
@@ -148,6 +154,7 @@ object ShopPlan extends Controller with ShopPlanJsonCombinators {
     val successF = ShopPlanClient ?= EndShopPlan(shopplanId)
     successF.map(s => Ok(Json.obj("success" -> JsBoolean(s)))).recover {
       case NonFatal(ex) =>
+        log.error(s"Caught error [${ex.getMessage}] while ending shopplan", ex)
         InternalServerError(Json.obj("error" -> JsString("Couldn't end shopplan")))
     }
   }
@@ -156,7 +163,6 @@ object ShopPlan extends Controller with ShopPlanJsonCombinators {
   /**
    * Convert Request query paramter's comma separated fields to
    * Array of ShopPlanField
-   * @type {[type]}
    */
   private def toShopPlanFields(str: String) =
     str.split(",").flatMap(ShopPlanField.valueOf(_))

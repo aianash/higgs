@@ -1,26 +1,11 @@
-# # Routes
-# # This file defines all application routes (Higher priority routes first)
-# # ~~~~
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# ~~~~
 
-# # OAuth token endpoint
-# POST        /v1/oauth/token             controllers.Auth.token
-
-# # User REST APIs
-# GET         /v1/me                      controllers.User.me
-
-# # Feed REST APIs
-# GET         /v1/feed/common             controllers.Feed.common
-# GET         /v1/feed/user               controllers.Feed.user
-
-# # Bucket REST APIs
-# GET         /v1/bucket/stores           controllers.Bucket.stores(fields: String ?= "")
-# POST        /v1/bucket/cud              controllers.Bucket.cud
-
-# # Shopplan REST APIs
-# GET         /v1/shopplan/list/own       controllers.ShopPlan.listOwn(fields: String ?= "Title,Stores,Destinations")
-# POST        /v1/shopplan/create         controllers.ShopPlan.create
-# GET         /v1/shopplan/:suid          controllers.ShopPlan.get(suid: Long, fields: String ?= "Title,Stores,Destinations")
-# DELETE      /v1/shopplan/:suid          controllers.ShopPlan.end(suid: Long)
-
-# # Search REST APIs
-# POST        /v1/search/:sruid           controllers.Search.search(sruid: Long)
+# Include other route files
+-> 			/ 			auth.Routes
+-> 			/ 			user.Routes
+-> 			/ 			search.Routes
+-> 			/ 			bucket.Routes
+-> 			/ 			shopplan.Routes
+-> 			/ 			feed.Routes

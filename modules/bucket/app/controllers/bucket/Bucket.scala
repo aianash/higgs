@@ -7,6 +7,7 @@ import scala.util.control.NonFatal
 import play.api.mvc._
 import play.api.Play.current
 import play.api.libs.json._
+import play.api.Logger
 
 import akka.util.Timeout
 
@@ -28,6 +29,8 @@ import models.bucket._
  */
 object Bucket extends Controller with BucketJsonCombinators {
 
+  val log = Logger(this.getClass)
+
   // Bucket client actor
   private val BucketClient = Actors.bucketClient
 
@@ -47,6 +50,7 @@ object Bucket extends Controller with BucketJsonCombinators {
     val storesF = BucketClient ?= GetBucketStores(request.user.get.id, fields)
     storesF.map(s => Ok(Json.toJson(s))).recover {
       case NonFatal(ex) =>
+        log.error(s"Caught error [${ex.getMessage}] while getting bucket stores", ex)
         InternalServerError(Json.obj("error" -> JsString("Couldn't fetch bucket stores")))
     }
   }
@@ -77,7 +81,8 @@ object Bucket extends Controller with BucketJsonCombinators {
     val successF = BucketClient ?= ModifyBucket(request.user.get.id, cud)
     successF.map(s => Ok(Json.obj("success" -> JsBoolean(s)))).recover {
       case NonFatal(ex) =>
-        InternalServerError(Json.obj("error" -> JsString("Couldn't fetch bucket stores")))
+        log.error(s"Caught error [${ex.getMessage}] while performing create/update/delete operations on bucket", ex)
+        InternalServerError(Json.obj("error" -> JsString("Couldn't perform cud on bucket")))
     }
   }
 

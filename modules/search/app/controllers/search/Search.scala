@@ -7,6 +7,7 @@ import scala.util.control.NonFatal
 import play.api.mvc._
 import play.api.Play.current
 import play.api.libs.json._
+import play.api.Logger
 
 import akka.util.Timeout
 
@@ -27,6 +28,8 @@ import models.search._
  * user id to complete the request
  */
 object Search extends Controller with SearchJsonCombinators {
+
+  val log = Logger(this.getClass)
 
   // Search client actor
   private val SearchClient = Actors.searchClient
@@ -54,7 +57,8 @@ object Search extends Controller with SearchJsonCombinators {
     (Authenticate andThen OnlyIfAuthenticated).async(parse.json[SearchRequest]) { implicit request =>
       val searchRequest = request.body
       val searchId = CatalogueSearchId(userId = request.user.get.id, sruid = sruid)
-      val searchQuery = CatalogueSearchQuery(queryText = searchRequest.queryText)
+      val param = QueryParam(value = Some("levis men's jeans"))
+      val searchQuery = CatalogueSearchQuery(queryText = searchRequest.queryText, params = Map("brand" -> param))
       val catalogueSearchRequest = CatalogueSearchRequest(
         searchId  = searchId,
         query     = searchQuery,
@@ -62,11 +66,12 @@ object Search extends Controller with SearchJsonCombinators {
         pageSize  = searchRequest.pageSize
       )
 
-      implicit val timeout = Timeout(5 seconds)
+      implicit val timeout = Timeout(100 seconds)
 
       val resultF = SearchClient ?= SearchCatalogue(catalogueSearchRequest)
-      resultF.map(r => Ok(Json.toJson(r))).recover {
+      resultF.map({r => Ok(Json.toJson(r))}).recover {
         case NonFatal(ex) =>
+          log.error(s"Caught error [${ex.getMessage}] while getting search result", ex)
           InternalServerError(Json.obj("error" -> JsString("Couldn't fetch search result for search id = ${searchId.userId.uuid}.${searchId.sruid}")))
       }
     }

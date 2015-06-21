@@ -56,5 +56,5 @@ class Actors(app: Application) extends Plugin {
   }
 
   // lazily create a the feed client actor
-  private lazy val shopPlanClient = system.actorOf(ShopPlanClient.props(neutrino), "bucketClient")
+  private lazy val shopPlanClient = system.actorOf(ShopPlanClient.props(neutrino), "shopPlanClient")
 }

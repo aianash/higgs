@@ -8,6 +8,7 @@ import play.api.mvc._
 import play.api.Play.current
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
+import play.api.Logger
 
 import akka.util.Timeout
 
@@ -26,6 +27,18 @@ import models.feed._
  * @define feedFilter
  * FeedFilter is parsed out of the request body. Passing FeedFilter
  * is mandatory, even if its empty filter
+ * {{{
+ * BODY =
+ *  {
+ *    "location" : {
+ *      "gpsLoc": {
+ *         "lat": 20.1002,
+ *         "lng": 29.3003
+ *       }
+ *    },
+ *    "page": 1
+ *  }
+ * }}}
  *
  * @define needAuthentication
  * This requires user to be authenticated. Because the action requires
@@ -33,6 +46,8 @@ import models.feed._
  *
  */
 object Feed extends Controller with FeedJsonCombinators {
+
+  private val log = Logger(this.getClass)
 
   // Feed client Actor
   private val FeedClient = Actors.feedClient
@@ -52,6 +67,7 @@ object Feed extends Controller with FeedJsonCombinators {
     val feedF = FeedClient ?= GetCommonFeed(filter)
     feedF.map(f => Ok(Json.toJson(f))).recover {
       case NonFatal(ex) =>
+        log.error(s"Caught error [${ex.getMessage}] while getting common feed", ex)
         InternalServerError(Json.obj("error" -> JsString("Couldn't fetch common feeds")))
     }
   }
@@ -72,6 +88,7 @@ object Feed extends Controller with FeedJsonCombinators {
     val feedF = FeedClient ?= GetUserFeed(userId, filter)
     feedF.map(f => Ok(Json.toJson(f))).recover {
       case NonFatal(ex) =>
+        log.error(s"Caught error [${ex.getMessage}] while getting user feed", ex)
         InternalServerError(Json.obj("error" -> JsString(s"Couldn't fetch feeds for user $userId")))
     }
   }

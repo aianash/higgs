@@ -88,8 +88,8 @@ class AuthService(neutrino: Neutrino$FinagleClient) extends Actor with ActorLogg
      */
     case VerifyTokenAndGetUser(token) =>
       try {
-        val claims = getClaimsFromToken(token)
-        val uuid   = claims.getClaimValue("uuid", classOf[Long])
+        val claims = getClaimsFromToken(token, "boson-app")
+        val uuid   = claims.getClaimValue("uuid", classOf[java.lang.Long])
         sender() ! User(UserId(uuid))
       } catch {
         case NonFatal(ex) =>
@@ -112,7 +112,7 @@ class AuthService(neutrino: Neutrino$FinagleClient) extends Actor with ActorLogg
 
     val fbClient = new DefaultFacebookClient(fbAuthInfo.token, fbAppSecret, Version.VERSION_2_0)
     val me = new BatchRequestBuilder("me").build()
-    val picture = new BatchRequestBuilder("me/picture").build()
+    val picture = new BatchRequestBuilder("me/picture?redirect=false&type=normal").build()
 
     try {
       val responses = fbClient.executeBatch(me, picture)
@@ -126,30 +126,37 @@ class AuthService(neutrino: Neutrino$FinagleClient) extends Actor with ActorLogg
         handle = (mejson \ "name").asOpt[String])
 
       val avatar = UserAvatar(
-        small  = (picturejson \ "url").asOpt[String],
-        medium = (picturejson \ "url").asOpt[String],
-        large  = (picturejson \ "url").asOpt[String])
+        small  = (picturejson \ "data" \ "url").asOpt[String],
+        medium = (picturejson \ "data" \ "url").asOpt[String],
+        large  = (picturejson \ "data" \ "url").asOpt[String])
 
       val facebookInfo = FacebookInfo(
         userId = UserId((mejson \ "id").as[String].toLong),
         token  = fbAuthInfo.token.some)
 
+      val localeO = (mejson \ "locale").asOpt[String]
+                      .flatMap(l =>
+                        Locale.valueOf(l.toUpperCase.replaceAllLiterally("_", "")))
       UserInfo(
         name         = name.some,
         facebookInfo = facebookInfo.some,
         avatar       = avatar.some,
-        locale       = (mejson \ "locale").asOpt[String].flatMap(l => Locale.valueOf(l.toUpperCase)),
+        locale       = localeO,
         gender       = (mejson \ "gender").asOpt[String].flatMap(g => Gender.valueOf(g.toUpperCase)),
         email        = (mejson \ "email").asOpt[String],
-        timezone     = (mejson \ "timezone").asOpt[String],
+        timezone     = (mejson \ "timezone").asOpt[Float].map(_.toString),
         isNew        = Some(true)
       )
     } catch {
       case ex: FacebookOAuthException =>
+        log.error(ex, "Caught facebook auth error [{}] while gettting user's facebook info",
+                      ex.getMessage)
         throw InvalidCredentialsException("Couldnt authenticate facebook token")
 
       case NonFatal(ex) =>
-        throw new Exception("Some internal error occured")
+        log.error(ex, "Caught error [{}] while gettting user's facebook info",
+                      ex.getMessage)
+        throw new Exception("Error while getting user's facebook information")
     }
   }
 
@@ -209,7 +216,7 @@ class AuthService(neutrino: Neutrino$FinagleClient) extends Actor with ActorLogg
    * @param token       token string
    * @return            jwt claims from the token
    */
-  def getClaimsFromToken(token: String) = {
+  def getClaimsFromToken(token: String, audience: String) = {
     // Use JwtConsumerBuilder to construct an appropriate JwtConsumer, which will
     // be used to validate and process the JWT.
     // The specific validation requirements for a JWT are context dependent, however,
@@ -220,7 +227,7 @@ class AuthService(neutrino: Neutrino$FinagleClient) extends Actor with ActorLogg
             .setAllowedClockSkewInSeconds(30) // allow some leeway in validating time based claims to account for clock skew
             .setRequireSubject() // the JWT must have a subject claim
             .setExpectedIssuer(issuer) // whom the JWT needs to have been issued by
-            .setExpectedAudience("boson") // to whom the JWT is intended for
+            .setExpectedAudience(audience) // to whom the JWT is intended for
             .setVerificationKey(publicKey) // verify the signature with the public key
             .build()
 

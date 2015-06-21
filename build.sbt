@@ -1,24 +1,50 @@
+import com.typesafe.sbt.packager.archetypes.JavaAppPackaging
+
+import com.typesafe.sbt.packager.docker.{Cmd, ExecCmd, CmdLike}
+
 name := """higgs"""
 
 version := "0.0.1"
 
-lazy val common = (project in file("modules/common"))
+lazy val common = (project in file("modules/common")).disablePlugins(DockerPlugin)
 
-lazy val auth = (project in file("modules/auth")).enablePlugins(PlayScala).dependsOn(common)
+lazy val auth = (project in file("modules/auth")).enablePlugins(PlayScala).disablePlugins(DockerPlugin).dependsOn(common)
 
-lazy val bucket = (project in file("modules/bucket")).enablePlugins(PlayScala).dependsOn(common, auth)
+lazy val bucket = (project in file("modules/bucket")).enablePlugins(PlayScala).disablePlugins(DockerPlugin).dependsOn(common, auth)
 
-lazy val feed = (project in file("modules/feed")).enablePlugins(PlayScala).dependsOn(common, auth)
+lazy val feed = (project in file("modules/feed")).enablePlugins(PlayScala).disablePlugins(DockerPlugin).dependsOn(common, auth)
 
-lazy val search = (project in file("modules/search")).enablePlugins(PlayScala).dependsOn(common, auth, shopplan)
+lazy val search = (project in file("modules/search")).enablePlugins(PlayScala).disablePlugins(DockerPlugin).dependsOn(common, auth, shopplan)
 
-lazy val shopplan = (project in file("modules/shopplan")).enablePlugins(PlayScala).dependsOn(common, auth)
+lazy val shopplan = (project in file("modules/shopplan")).enablePlugins(PlayScala).disablePlugins(DockerPlugin).dependsOn(common, auth)
 
-lazy val user = (project in file("modules/user")).enablePlugins(PlayScala).dependsOn(common, auth)
+lazy val user = (project in file("modules/user")).enablePlugins(PlayScala).disablePlugins(DockerPlugin).dependsOn(common, auth)
+
+lazy val integrationTest = (project in file("integration_test")).disablePlugins(DockerPlugin).dependsOn(common)
 
 lazy val root = (project in file("."))
   .enablePlugins(PlayScala)
+  .enablePlugins(JavaAppPackaging)
+  .settings(
+    dockerExposedPorts := Seq(9000),
+    // TODO: remove echo statement once verified
+    dockerEntrypoint := Seq("sh", "-c", "export HIGGS_HOST=`/sbin/ifconfig eth0 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1 }'` && echo $HIGGS_HOST && bin/higgs $*"),
+    dockerRepository := Some("docker"),
+    dockerBaseImage := "phusion/baseimage",
+    dockerCommands ++= Seq(
+      Cmd("USER", "root"),
+      new CmdLike {
+        def makeContent = """|RUN \
+                             |  echo oracle-java7-installer shared/accepted-oracle-license-v1-1 select true | debconf-set-selections && \
+                             |  add-apt-repository -y ppa:webupd8team/java && \
+                             |  apt-get update && \
+                             |  apt-get install -y oracle-java7-installer && \
+                             |  rm -rf /var/lib/apt/lists/* && \
+                             |  rm -rf /var/cache/oracle-jdk7-installer""".stripMargin
+      }
+    )
+  )
   .dependsOn(common, auth, bucket, feed, search, shopplan, user)
-  .aggregate(common, auth, bucket, feed, search, shopplan, user)
+  .aggregate(common, auth, bucket, feed, search, shopplan, user, integrationTest)
 
-scalacOptions ++= Seq("-feature",  "-language:postfixOps")
+scalacOptions ++= Seq("-feature",  "-language:postfixOps", "-language:reflectiveCalls")

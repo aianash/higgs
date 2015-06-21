@@ -84,7 +84,7 @@ object ShopPlanClient {
 
 
 sealed trait ShopPlanClientProtocol
-case class GetShopPlan(shopplanId: ShopPlanId, fields: Seq[ShopPlanField]) extends ShopPlanClientProtocol with Replyable[Seq[ShopPlan]]
-case class GetOwnShopPlans(userId: UserId, fields: Seq[ShopPlanField]) extends ShopPlanClientProtocol with Replyable[ShopPlan]
+case class GetShopPlan(shopplanId: ShopPlanId, fields: Seq[ShopPlanField]) extends ShopPlanClientProtocol with Replyable[ShopPlan]
+case class GetOwnShopPlans(userId: UserId, fields: Seq[ShopPlanField]) extends ShopPlanClientProtocol with Replyable[Seq[ShopPlan]]
 case class CreateShopPlan(userId: UserId, cud: CUDShopPlan) extends ShopPlanClientProtocol with Replyable[ShopPlanId]
 case class EndShopPlan(shopplanId: ShopPlanId) extends ShopPlanClientProtocol with Replyable[Boolean]

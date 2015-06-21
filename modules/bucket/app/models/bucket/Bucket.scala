@@ -29,13 +29,28 @@ trait BucketJsonCombinators {
 
   // StoreId
   protected val storeIdReads: Reads[StoreId] =
-    (__ \ "stuid").read[Long].map(StoreId(_))
+    (__ \ "stuid").read[String].map(id => StoreId(id.toLong))
 
   protected val storeIdWrites: Writes[StoreId] =
-    (__ \ "stuid").write[Long].contramap[StoreId](_.stuid)
+    (__ \ "stuid").write[String].contramap[StoreId](_.stuid.toString)
 
   protected implicit val storeIdFormat: Format[StoreId] =
     Format(storeIdReads, storeIdWrites)
+
+
+  // CatalogueItemId
+  val catalogueItemIdReads: Reads[CatalogueItemId] = (
+    (__ \ "storeId").read[StoreId] ~
+    (__ \ "cuid")   .read[String].map(_.toLong)
+  )(CatalogueItemId.apply _)
+
+  val catalogueItemIdWrites: Writes[CatalogueItemId] = (
+    (__ \ "storeId").write[StoreId] ~
+    (__ \ "cuid")   .write[String]
+  ) { cid: CatalogueItemId => (cid.storeId, cid.cuid.toString) }
+
+  protected implicit val catalogueItemIdFormat: Format[CatalogueItemId] =
+    Format(catalogueItemIdReads, catalogueItemIdWrites)
 
 
   // StoreType
@@ -109,7 +124,9 @@ trait BucketJsonCombinators {
 
   // JsonCatalogueItem
   protected implicit val jsonCatalogueItemWrites: Writes[JsonCatalogueItem] =
-    Writes(item => Json.parse(item.json))
+    Writes(item =>
+      if(item.json.isEmpty) Json.obj("itemId" -> Json.toJson(item.itemId))
+      else  Json.parse(item.json))
 
 
   // BucketStore
@@ -122,13 +139,6 @@ trait BucketJsonCombinators {
       import store._
       (storeId, storeType, info, catalogueItems)
   }
-
-
-  // CatalogueItemId
-  protected implicit val catalogueItemIdReads: Reads[CatalogueItemId] = (
-    (__ \ "storeId").read[StoreId] ~
-    (__ \ "ctuid")  .read[Long]
-  )(CatalogueItemId.apply _)
 
 
   // CUDBucket

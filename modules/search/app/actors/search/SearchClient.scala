@@ -71,12 +71,12 @@ class SearchClient(creed: Creed$FinagleClient, cassie: Cassie$FinagleClient) ext
           stores  <- storesF
         } yield {
           val grpdItems = items.groupBy(_.itemId.storeId.stuid)
-
           // [NOTE] Grouping breaks the ranking of catalogue items
           // and therefore goruping should be handled by the ranker
           // itself [TO DO]
           stores.flatMap { store =>
             grpdItems.get(store.storeId.stuid).map { items =>
+
               val jsonItems =
                 items.flatMap(CatalogueItem.asJsonItem(_))
 

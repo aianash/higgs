@@ -65,24 +65,24 @@ trait FeedJsonCombinators {
 
   // PostId
   protected implicit val postIdWrites: Writes[PostId] =
-    (__ \ "ptuid").write[Long].contramap[PostId](_.ptuid)
+    (__ \ "ptuid").write[String].contramap[PostId](_.ptuid.toString)
 
 
   // StoreId
   protected implicit val storeIdWrites: Writes[StoreId] =
-    (__ \ "stuid").write[Long].contramap[StoreId](_.stuid)
+    (__ \ "stuid").write[String].contramap[StoreId](_.stuid.toString)
 
 
   // StoreName
   protected implicit val storeNameWrites: Writes[StoreName] = (
-    (__ \ "full").writeNullable[String] ~
+    (__ \ "full")  .writeNullable[String] ~
     (__ \ "handle").writeNullable[String]
   ) { name: StoreName => (name.full, name.handle) }
 
 
   // Offer
   protected implicit val offerWrites: Writes[Offer] = (
-    (__ \ "title").write[String] ~
+    (__ \ "title")   .write[String] ~
     (__ \ "subtitle").write[String]
   ) { offer: Offer => (offer.title, offer.subtitle) }
 
@@ -113,9 +113,9 @@ trait FeedJsonCombinators {
 
   // PosterAd
   protected implicit val posterAdWrites: Writes[PosterAd] = (
-    (__ \ "paduid") .write[Long] ~
+    (__ \ "paduid") .write[String] ~
     (__ \ "image")  .write[PosterImage]
-  ) { ad: PosterAd => (ad.paduid, ad.image) }
+  ) { ad: PosterAd => (ad.paduid.toString, ad.image) }
 
 
   // PosterAdPost
@@ -136,7 +136,7 @@ trait FeedJsonCombinators {
 
   // Feed
   protected implicit val feedWrites: Writes[Feed] = (
-    (__ \ "offerPosts") .write[Seq[OfferPost]] ~
+    (__ \ "offerPosts")   .write[Seq[OfferPost]] ~
     (__ \ "PosterAdPosts").write[Seq[PosterAdPost]] ~
     (__ \ "page").write[Int]
   ) { feed: Feed => (feed.offerPosts, feed.posterAdPosts, feed.page) }
