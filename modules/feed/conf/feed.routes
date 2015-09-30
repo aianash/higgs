@@ -1,3 +1,0 @@
-# Feed REST APIs
-POST         /v1/feed/common             controllers.feed.Feed.common
-POST         /v1/feed/user               controllers.feed.Feed.user
