@@ -1,15 +1,12 @@
 package actors.auth
 
+import javax.inject._
+
 import play.api._
 import play.api.libs.concurrent.Akka
+import play.api.inject._
 
-import org.apache.thrift.protocol.TBinaryProtocol
-
-import com.twitter.finagle.Thrift
-import com.twitter.finagle.builder.ClientBuilder
-import com.twitter.finagle.thrift.ThriftClientFramedCodecFactory
-
-import com.goshoplane.neutrino.service._
+import neutrino.auth._
 
 
 /**
@@ -22,6 +19,7 @@ object Actors {
     .getOrElse(sys.error("Actors plugin not registered"))
 
   def authService(implicit app: Application) = actors.authService
+
 }
 
 
@@ -30,28 +28,12 @@ object Actors {
  * creating using Play Plugin. This plugin's initialization order
  * is specified in `play.plugins` file
  */
-class Actors(app: Application) extends Plugin {
+class Actors @Inject() (app: Application) extends Plugin {
 
   private def system = Akka.system(app)
 
-  // Create a client to Neutrino service, which is
-  // shared among the associated client actors
-  private val neutrino = {
-    val protocol = new TBinaryProtocol.Factory()
+  private val neutrinoAuth = system.actorOf(AuthenticationSupervisor.props)
 
-    val endpoint =
-      (for {
-        host <- app.configuration.getString("neutrino.host")
-        port <- app.configuration.getInt("neutrino.port")
-      } yield host + ":" + port) getOrElse "127.0.0.1:2424" // default endpoint
+  private lazy val authService  = system.actorOf(AuthService.props(neutrinoAuth), "authService")
 
-    val connectionLimit = app.configuration.getInt("neutrino.connection-limit").getOrElse(2)
-
-    val client = ClientBuilder().codec(new ThriftClientFramedCodecFactory(None, false, protocol))
-      .dest(endpoint).hostConnectionLimit(connectionLimit).build()
-
-    new Neutrino$FinagleClient(client, protocol)
-  }
-
-  private lazy val authService  = system.actorOf(AuthService.props(neutrino), "authService")
 }

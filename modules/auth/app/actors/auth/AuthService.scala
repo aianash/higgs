@@ -3,17 +3,20 @@ package actors.auth
 import scala.util.control.NonFatal
 import scala.collection.JavaConversions._
 import scala.concurrent.Future
-import scala.util._
+import scala.concurrent.duration._
+// import scala.util._
 
 import java.io._
 import java.security._
 import java.security.spec._
 import java.security.interfaces.{RSAPrivateKey, RSAPublicKey}
 
-import akka.actor.{Actor, Props, ActorLogging}
+import akka.actor.{Actor, ActorRef, Props, ActorLogging}
 import akka.pattern.pipe
+import akka.util.Timeout
 
 import models.auth._
+import models.auth.{User => HiggsUser}
 
 import org.jose4j.jwt.consumer.{InvalidJwtException, JwtConsumerBuilder, JwtConsumer}
 import org.jose4j.jwt._
@@ -22,28 +25,26 @@ import org.jose4j.jwk._
 
 import scalaz.Scalaz._
 
-import com.twitter.bijection._, twitter_util.UtilBijections._
-import com.twitter.bijection.Conversion.asMethod
-
 import play.api.Logger
 import play.api.Play.current
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
+import play.api.http.Status
 
-import goshoplane.commons.core.protocols._
+import goshoplane.commons.core.protocols._, Implicits._
 
-import com.goshoplane.neutrino.service._
-import com.goshoplane.common._
+import neutrino.core.auth._, AuthStatus._, Failure._
+import neutrino.core.user._
+import neutrino.auth.protocols._
 
-import com.restfb._, exception._
-import com.restfb.batch._, BatchRequest._
+import higgs.core.result._
 
 
 case class InvalidCredentialsException(message: String) extends Exception
 
 sealed trait AuthServiceProtocol
-case class VerifyAndGetTokenFor(authInfo: FBAuthInfo) extends AuthServiceProtocol with Replyable[String]
-case class VerifyTokenAndGetUser(token: String) extends AuthServiceProtocol with Replyable[User]
+case class VerifyAndGetTokenFor(authInfo: SocialAuthInfo) extends AuthServiceProtocol with Replyable[JsonResult]
+case class VerifyTokenAndGetUser(token: String) extends AuthServiceProtocol with Replyable[HiggsUser]
 
 
 /**
@@ -52,7 +53,7 @@ case class VerifyTokenAndGetUser(token: String) extends AuthServiceProtocol with
  *   a higgs access token
  * - verfying access token and create user with user id of the authenticated token
  */
-class AuthService(neutrino: Neutrino$FinagleClient) extends Actor with ActorLogging {
+class AuthService(auth: ActorRef) extends Actor with ActorLogging {
 
   import context.dispatcher
   import AuthService._
@@ -65,22 +66,10 @@ class AuthService(neutrino: Neutrino$FinagleClient) extends Actor with ActorLogg
      * - Generate an new higgs access token for ther user
      * - Send back the token
      */
-    case VerifyAndGetTokenFor(fbAuthInfo) =>
-      val tokenF =
-        for {
-          userInfo <- getUsersFacebookInfo(fbAuthInfo)
-          userId   <- asMethod(neutrino.createUser(userInfo)).as[Future[UserId]]
-        } yield generateToken(userId, fbAuthInfo.clientId)
-
-
-      tokenF andThen {
-        case Failure(NonFatal(ex)) =>
-          log.error(ex, "Caught error [{}] while verifying, updating user and creating token for info = {}",
-                        ex.getMessage,
-                        fbAuthInfo)
-      }
-
-      tokenF pipeTo sender()
+    case VerifyAndGetTokenFor(authInfo) =>
+      println("coming till here")
+      implicit val timeout = Timeout(2 seconds)
+      (auth ?= AuthenticateUser(authInfo, None)).map(createResponse(_)) pipeTo sender()
 
     /**
      * - Verify higgs access token and extract claims
@@ -90,7 +79,7 @@ class AuthService(neutrino: Neutrino$FinagleClient) extends Actor with ActorLogg
       try {
         val claims = getClaimsFromToken(token, "boson-app")
         val uuid   = claims.getClaimValue("uuid", classOf[java.lang.Long])
-        sender() ! User(UserId(uuid))
+        sender() ! HiggsUser(UserId(uuid))
       } catch {
         case NonFatal(ex) =>
           log.error(ex, "Caught error [{}] while getting claims and user from token",
@@ -100,80 +89,17 @@ class AuthService(neutrino: Neutrino$FinagleClient) extends Actor with ActorLogg
 
   }
 
-
-  /**
-   * - Veriy facebook token for user by calling "/me" facebook api
-   * - Fill UserInfo with user's information fetched from facebook apis "/me" and "/me/picture"
-   *
-   * @param fbAuthInfo        facebook auth info containing token
-   * @return                  UserInfo with filled in values
-   */
-  private def getUsersFacebookInfo(fbAuthInfo: FBAuthInfo) = Future {
-
-    val fbClient = new DefaultFacebookClient(fbAuthInfo.token, fbAppSecret, Version.VERSION_2_0)
-    val me = new BatchRequestBuilder("me").build()
-    val picture = new BatchRequestBuilder("me/picture?redirect=false&type=normal").build()
-
-    try {
-      val responses = fbClient.executeBatch(me, picture)
-
-      val mejson      = Json.parse(responses.get(0).getBody)
-      val picturejson = Json.parse(responses.get(1).getBody)
-
-      val name = UserName(
-        first  = (mejson \ "first_name").asOpt[String],
-        last   = (mejson \ "last_name").asOpt[String],
-        handle = (mejson \ "name").asOpt[String])
-
-      val avatar = UserAvatar(
-        small  = (picturejson \ "data" \ "url").asOpt[String],
-        medium = (picturejson \ "data" \ "url").asOpt[String],
-        large  = (picturejson \ "data" \ "url").asOpt[String])
-
-      val facebookInfo = FacebookInfo(
-        userId = UserId((mejson \ "id").as[String].toLong),
-        token  = fbAuthInfo.token.some)
-
-      val localeO = (mejson \ "locale").asOpt[String]
-                      .flatMap(l =>
-                        Locale.valueOf(l.toUpperCase.replaceAllLiterally("_", "")))
-      UserInfo(
-        name         = name.some,
-        facebookInfo = facebookInfo.some,
-        avatar       = avatar.some,
-        locale       = localeO,
-        gender       = (mejson \ "gender").asOpt[String].flatMap(g => Gender.valueOf(g.toUpperCase)),
-        email        = (mejson \ "email").asOpt[String],
-        timezone     = (mejson \ "timezone").asOpt[Float].map(_.toString),
-        isNew        = Some(true)
-      )
-    } catch {
-      case ex: FacebookOAuthException =>
-        log.error(ex, "Caught facebook auth error [{}] while gettting user's facebook info",
-                      ex.getMessage)
-        throw InvalidCredentialsException("Couldnt authenticate facebook token")
-
-      case NonFatal(ex) =>
-        log.error(ex, "Caught error [{}] while gettting user's facebook info",
-                      ex.getMessage)
-        throw new Exception("Error while getting user's facebook information")
-    }
-  }
-
-
   /**
    * Generate token with payload contains claims for given uuid
    * for the given audience
    *
    * @param   userId      UserId used in payload
-   * @param   audience    client if for which token is being generated
    * @return              Token string
    */
-  private def generateToken(userId: UserId, audience: String) = {
+  private def generateToken(userId: UserId) = {
     // Create the Claims, which will be the content of the JWT
     val claims = new JwtClaims()
     claims.setIssuer(issuer)                            // who creates the token and signs it
-    claims.setAudience(audience)                        // to whom the token is intended to be sent
     claims.setExpirationTimeMinutesInTheFuture(43200)   // time when the token will expire (30 days from now)
     claims.setGeneratedJwtId()                          // a unique identifier for the token
     claims.setIssuedAtToNow()                           // when the token was issued/created (now)
@@ -216,7 +142,7 @@ class AuthService(neutrino: Neutrino$FinagleClient) extends Actor with ActorLogg
    * @param token       token string
    * @return            jwt claims from the token
    */
-  def getClaimsFromToken(token: String, audience: String) = {
+  private def getClaimsFromToken(token: String, audience: String) = {
     // Use JwtConsumerBuilder to construct an appropriate JwtConsumer, which will
     // be used to validate and process the JWT.
     // The specific validation requirements for a JWT are context dependent, however,
@@ -241,7 +167,18 @@ class AuthService(neutrino: Neutrino$FinagleClient) extends Actor with ActorLogg
                       ex.getMessage)
         throw InvalidCredentialsException("Auth Token is invalid")
     }
+  }
 
+  private def createResponse(authStatus: AuthStatus) = authStatus match {
+    case Success(userId, userType, isNewUser) =>
+      val token = generateToken(userId)
+      JsonSuccess(Json.obj("token" -> JsString(token)))
+
+    case InternalServerError =>
+      JsonError(Json.obj("error" -> "Internal server error occurred"), Status.INTERNAL_SERVER_ERROR)
+
+    case InvalidCredentials(msg) =>
+      Json.obj("error" -> msg)
   }
 
 }
@@ -250,18 +187,25 @@ class AuthService(neutrino: Neutrino$FinagleClient) extends Actor with ActorLogg
 // Companion object
 object AuthService {
 
-  def props(neutrino: Neutrino$FinagleClient) = Props(new AuthService(neutrino))
+  def props(auth: ActorRef) = Props(new AuthService(auth))
 
   private val log = Logger(this.getClass)
 
-  private val fbAppSecret = current.configuration.getString("fb.app-secret")
-                                                 .getOrElse(sys.error("Couldn't find fb.app-secret"))
-  private val fbAppId = current.configuration.getString("fb.app-id")
-                                             .getOrElse(sys.error("Couldn't find fb.app-id"))
-  private val issuer = current.configuration.getString("authenticate.issuer")
-                                            .getOrElse(sys.error("Couldn't find authenticate.issuer"))
-  private val keyId = current.configuration.getString("authenticate.key-id")
-                                           .getOrElse(sys.error("Couldn't find authenticate.key-id"))
+  private val fbAppSecret = current
+      .configuration.getString("fb.app-secret")
+      .getOrElse(sys.error("Couldn't find fb.app-secret"))
+
+  private val fbAppId = current
+    .configuration.getString("fb.app-id")
+    .getOrElse(sys.error("Couldn't find fb.app-id"))
+
+  private val issuer = current
+    .configuration.getString("authenticate.issuer")
+    .getOrElse(sys.error("Couldn't find authenticate.issuer"))
+
+  private val keyId = current
+    .configuration.getString("authenticate.key-id")
+    .getOrElse(sys.error("Couldn't find authenticate.key-id"))
 
   /**
    * Private RSA key

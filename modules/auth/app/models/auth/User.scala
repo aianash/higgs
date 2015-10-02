@@ -1,6 +1,6 @@
 package models.auth
 
-import com.goshoplane.common._
+import neutrino.core.user.UserId
 
 
 /**

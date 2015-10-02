@@ -3,9 +3,4 @@
 # ~~~~
 
 # Include other route files
--> 			/ 			auth.Routes
--> 			/ 			user.Routes
--> 			/ 			search.Routes
--> 			/ 			bucket.Routes
--> 			/ 			shopplan.Routes
--> 			/ 			feed.Routes
+-> 			/			auth.Routes

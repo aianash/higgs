@@ -6,25 +6,20 @@ name := """higgs"""
 
 version := "0.0.1"
 
-lazy val common = (project in file("modules/common")).disablePlugins(DockerPlugin)
+scalaVersion := "2.11.7"
 
-lazy val auth = (project in file("modules/auth")).enablePlugins(PlayScala).disablePlugins(DockerPlugin).dependsOn(common)
+lazy val core = (project in file("core")).disablePlugins(DockerPlugin)
+  .settings(
+    name := "higgs-core",
+    libraryDependencies ++= Seq(
+    ) ++ Seq("com.typesafe.play" %% "play-json" % "2.4.3", "com.typesafe.play" %% "play" % "2.4.3")
+  )
 
-lazy val bucket = (project in file("modules/bucket")).enablePlugins(PlayScala).disablePlugins(DockerPlugin).dependsOn(common, auth)
-
-lazy val feed = (project in file("modules/feed")).enablePlugins(PlayScala).disablePlugins(DockerPlugin).dependsOn(common, auth)
-
-lazy val search = (project in file("modules/search")).enablePlugins(PlayScala).disablePlugins(DockerPlugin).dependsOn(common, auth, shopplan)
-
-lazy val shopplan = (project in file("modules/shopplan")).enablePlugins(PlayScala).disablePlugins(DockerPlugin).dependsOn(common, auth)
-
-lazy val user = (project in file("modules/user")).enablePlugins(PlayScala).disablePlugins(DockerPlugin).dependsOn(common, auth)
-
-lazy val integrationTest = (project in file("integration_test")).disablePlugins(DockerPlugin).dependsOn(common)
+lazy val auth = (project in file("modules/auth")).enablePlugins(PlayScala).dependsOn(core)
 
 lazy val root = (project in file("."))
-  .enablePlugins(PlayScala)
   .enablePlugins(JavaAppPackaging)
+  .enablePlugins(PlayScala)
   .settings(
     dockerExposedPorts := Seq(9000),
     // TODO: remove echo statement once verified
@@ -35,7 +30,9 @@ lazy val root = (project in file("."))
       Cmd("USER", "root")
     )
   )
-  .dependsOn(common, auth, bucket, feed, search, shopplan, user)
-  .aggregate(common, auth, bucket, feed, search, shopplan, user, integrationTest)
+  .dependsOn(core, auth)
+  .aggregate(core, auth)
 
 scalacOptions ++= Seq("-feature",  "-language:postfixOps", "-language:reflectiveCalls")
+
+routesGenerator := InjectedRoutesGenerator
