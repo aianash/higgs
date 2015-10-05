@@ -14,6 +14,7 @@ import java.security.interfaces.{RSAPrivateKey, RSAPublicKey}
 import akka.actor.{Actor, ActorRef, Props, ActorLogging}
 import akka.pattern.pipe
 import akka.util.Timeout
+import akka.routing.FromConfig
 
 import models.auth._
 import models.auth.{User => HiggsUser}
@@ -53,10 +54,12 @@ case class VerifyTokenAndGetUser(token: String) extends AuthServiceProtocol with
  *   a higgs access token
  * - verfying access token and create user with user id of the authenticated token
  */
-class AuthService(auth: ActorRef) extends Actor with ActorLogging {
+class AuthService extends Actor with ActorLogging {
 
   import context.dispatcher
   import AuthService._
+
+  val auth = context.actorOf(FromConfig.props(), name="authenticationSupervisor")
 
   def receive = {
 
@@ -67,7 +70,6 @@ class AuthService(auth: ActorRef) extends Actor with ActorLogging {
      * - Send back the token
      */
     case VerifyAndGetTokenFor(authInfo) =>
-      println("coming till here")
       implicit val timeout = Timeout(2 seconds)
       (auth ?= AuthenticateUser(authInfo, None)).map(createResponse(_)) pipeTo sender()
 
@@ -178,7 +180,7 @@ class AuthService(auth: ActorRef) extends Actor with ActorLogging {
       JsonError(Json.obj("error" -> "Internal server error occurred"), Status.INTERNAL_SERVER_ERROR)
 
     case InvalidCredentials(msg) =>
-      Json.obj("error" -> msg)
+      JsonError(Json.obj("error" -> msg), Status.UNAUTHORIZED)
   }
 
 }
@@ -187,7 +189,7 @@ class AuthService(auth: ActorRef) extends Actor with ActorLogging {
 // Companion object
 object AuthService {
 
-  def props(auth: ActorRef) = Props(new AuthService(auth))
+  def props = Props(classOf[AuthService])
 
   private val log = Logger(this.getClass)
 

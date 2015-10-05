@@ -4,6 +4,8 @@ import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.control.NonFatal
 
+import javax.inject._
+
 import play.api.mvc._
 import play.api.Play.current
 import play.api.libs.json._
@@ -11,6 +13,7 @@ import play.api.libs.functional.syntax._
 import play.api.Logger
 
 import akka.util.Timeout
+import akka.actor.ActorRef
 
 import goshoplane.commons.core.protocols._, Implicits._
 
@@ -25,17 +28,16 @@ import higgs.core.result._
  * Controller for Auth (ie receiving access token) for
  * app authenticated used (thru Facebook)
  */
-object Login extends Controller with AuthJsonCombinators with HttpResponseImplicits {
+@Singleton
+class Login @Inject() (@Named("authService") authService: ActorRef)
+  extends Controller with AuthJsonCombinators with HttpResponseImplicits {
 
   val log = Logger(this.getClass)
 
   // service to verifying token
-  private val AuthService = Actors.authService
+  // private val AuthService = Actors.authService
 
   //////////////////// Controller Actions (mapped to Route) ///////////////////////////
-  def index = Action { implicit request =>
-    Ok("admin")
-  }
 
   /**
    * Get access token for verified fb auth info
@@ -44,7 +46,7 @@ object Login extends Controller with AuthJsonCombinators with HttpResponseImplic
     val authInfo = request.body
     implicit val timeout = Timeout(2 seconds)
 
-    (AuthService ?= VerifyAndGetTokenFor(authInfo)).toHttpResponse
+    (authService ?= VerifyAndGetTokenFor(authInfo)).toHttpResponse
   }
 
   /**
@@ -54,8 +56,7 @@ object Login extends Controller with AuthJsonCombinators with HttpResponseImplic
     val authInfo = request.body
     implicit val timeout = Timeout(2 seconds)
 
-    (AuthService ?= VerifyAndGetTokenFor(authInfo)).toHttpResponse
-    
+    (authService ?= VerifyAndGetTokenFor(authInfo)).toHttpResponse
   }
 
 }

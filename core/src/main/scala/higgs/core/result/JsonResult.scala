@@ -23,6 +23,7 @@ trait HttpResponseImplicits { self: Controller =>
     private def toHttpErrorResponse(obj: JsObject, code: Int) = code match {
       case BAD_REQUEST           => BadRequest(obj)
       case INTERNAL_SERVER_ERROR => InternalServerError(obj)
+      case UNAUTHORIZED          => Unauthorized(obj)
     }
 
   }

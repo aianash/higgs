@@ -21,6 +21,9 @@ lazy val root = (project in file("."))
   .enablePlugins(JavaAppPackaging)
   .enablePlugins(PlayScala)
   .settings(
+    libraryDependencies ++= Seq(
+    "com.typesafe.akka" %% "akka-cluster" % "2.3.12"
+    ),
     dockerExposedPorts := Seq(9000),
     // TODO: remove echo statement once verified
     dockerEntrypoint := Seq("sh", "-c", "export HIGGS_HOST=`/sbin/ifconfig eth0 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1 }'` && echo $HIGGS_HOST && bin/higgs $*"),
