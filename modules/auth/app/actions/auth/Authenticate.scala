@@ -33,7 +33,7 @@ import akka.actor.ActorRef
  * [[actions.AuthRequest]] contains user if user id is successfully retrieved using token.
  */
 @Singleton
-class Authenticate @Inject() (@Named("authService") authService: ActorRef) {
+class Authenticate @Inject() (@Named("auth-service") authService: ActorRef) {
 
   val log = Logger(this.getClass)
 

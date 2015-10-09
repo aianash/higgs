@@ -58,7 +58,7 @@ class AuthService extends Actor with ActorLogging {
   import context.dispatcher
   import AuthService._
 
-  val auth = context.actorOf(FromConfig.props(), name="authenticationSupervisor")
+  val auth = context.actorOf(FromConfig.props(), name = "authentication-supervisor")
 
   def receive = {
 

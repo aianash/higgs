@@ -17,7 +17,7 @@ import neutrino.auth._
 class Actors extends AbstractModule with AkkaGuiceSupport {
 
   def configure = {
-    bindActor[AuthService]("authService")
+    bindActor[AuthService]("auth-service")
   }
 
 }
