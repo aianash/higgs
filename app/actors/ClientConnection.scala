@@ -13,7 +13,7 @@ import higgs.core.capsule._
 
 import neutrino.core.user._
 
-class ClientConnection @Inject() (@Assisted upstream: ActorRef) extends Actor with ActorLogging {
+class ClientConnection @Inject() (@Assisted userId: UserId, @Assisted upstream: ActorRef) extends Actor with ActorLogging {
 
   import context._
 
@@ -36,7 +36,7 @@ class ClientConnection @Inject() (@Assisted upstream: ActorRef) extends Actor wi
 object ClientConnection {
 
   trait Factory {
-    def apply(upstream: ActorRef): Actor
+    def apply(userId: UserId, upstream: ActorRef): Actor
   }
 
 }

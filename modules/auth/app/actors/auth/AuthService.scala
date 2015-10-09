@@ -17,7 +17,6 @@ import akka.util.Timeout
 import akka.routing.FromConfig
 
 import models.auth._
-import models.auth.{User => HiggsUser}
 
 import org.jose4j.jwt.consumer.{InvalidJwtException, JwtConsumerBuilder, JwtConsumer}
 import org.jose4j.jwt._
@@ -45,7 +44,7 @@ case class InvalidCredentialsException(message: String) extends Exception
 
 sealed trait AuthServiceProtocol
 case class VerifyAndGetTokenFor(authInfo: SocialAuthInfo) extends AuthServiceProtocol with Replyable[JsonResult]
-case class VerifyTokenAndGetUser(token: String) extends AuthServiceProtocol with Replyable[HiggsUser]
+case class VerifyTokenAndGetUser(token: String) extends AuthServiceProtocol with Replyable[UserId]
 
 
 /**
@@ -81,7 +80,7 @@ class AuthService extends Actor with ActorLogging {
       try {
         val claims = getClaimsFromToken(token, "boson-app")
         val uuid   = claims.getClaimValue("uuid", classOf[java.lang.Long])
-        sender() ! HiggsUser(UserId(uuid))
+        sender() ! UserId(uuid)
       } catch {
         case NonFatal(ex) =>
           log.error(ex, "Caught error [{}] while getting claims and user from token",

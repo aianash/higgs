@@ -12,6 +12,8 @@ import play.api.mvc._, Results._
 import play.api.Play.current
 import play.api.Logger
 
+import neutrino.core.user._
+
 import actors.auth._
 import models.auth._
 
@@ -19,15 +21,10 @@ import scalaz.Scalaz._
 
 import goshoplane.commons.core.protocols._, Implicits._
 
+import neutrino.core.user._
+
 import akka.util.Timeout
 import akka.actor.ActorRef
-
-
-/**
- * Wrapped Request containing user object optionally
- */
-case class AuthRequest[A](val user: Option[User], request: Request[A])
-  extends WrappedRequest(request)
 
 
 /**
@@ -36,39 +33,22 @@ case class AuthRequest[A](val user: Option[User], request: Request[A])
  * [[actions.AuthRequest]] contains user if user id is successfully retrieved using token.
  */
 @Singleton
-class Authenticate @Inject() (@Named("auth-service") authService: ActorRef) extends ActionBuilder[AuthRequest] {
+class Authenticate @Inject() (@Named("authService") authService: ActorRef) {
 
   val log = Logger(this.getClass)
 
-  def invokeBlock[A](request: Request[A], block: (AuthRequest[A]) => Future[Result]) = {
+  def verify(request: RequestHeader): Future[Option[UserId]] =
+    (for {
+      token <- request.queryString.get("accessToken").flatMap(_.headOption)
+    } yield {
+      implicit val timeout = Timeout(1 seconds) // [TO DO] set a proper value, this is too much
+                                                // should never reach this much
+      val userIdF = authService ?= VerifyTokenAndGetUser(token)
+      userIdF.map(_.some) recover {
+        case NonFatal(ex) =>
+          log.error(s"Caught error [${ex.getMessage}] while verifying token and getting user", ex)
+          None
+      }
+    }).getOrElse(Future.successful(None)) // when no access token altogether
 
-    val userFO =
-      (for {
-        token <- request.queryString.get("accessToken").flatMap(_.headOption)
-      } yield {
-        implicit val timeout = Timeout(1 seconds) // [TO DO] set a proper value, this is too much
-                                                  // should never reach this much
-        val userF = authService ?= VerifyTokenAndGetUser(token)
-        userF.map(_.some) recover {
-          case NonFatal(ex) =>
-            log.error(s"Caught error [${ex.getMessage}] while verifying token and getting user", ex)
-            None
-        }
-      }) getOrElse Future.successful(None) // when no access token altogether
-
-    userFO flatMap(userO => block(AuthRequest(userO, request)))
-  }
-
-}
-
-
-/**
- * This Action filter is used if action needs to be performed
- * only when [[actions.AuthRequest]] has valid user object
- */
-object OnlyIfAuthenticated extends ActionFilter[AuthRequest] {
-  def filter[A](input: AuthRequest[A]) = Future.successful {
-    if(input.user.isEmpty) Some(Forbidden)
-    else None
-  }
 }
