@@ -49,7 +49,7 @@ import higgs.core.capsule.channel._
 
 trait Capsule {
 
-  def channel: Option[Channel]
+  private[capsule] def channel: Option[Channel]
   def handleRequest: Request => Either[Request, Promise[Response]]
   def +>(another: Capsule)(userId: UserId): Capsule =
     CompositeCapsule(this, another, userId)

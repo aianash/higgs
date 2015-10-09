@@ -15,7 +15,7 @@ abstract class LeafCapsule[T <: LeafCapsule[T]](implicit hashifier: Hashifier[T]
   def processRequest(request: Any): Unit
   def responseToJson(response: Any): Option[JsValue]
 
-  val channel = (new ManyToOneChannel(hashifier, responseToJson)).some
+  private[capsule] val channel = (new ManyToOneChannel(hashifier, responseToJson)).some
 
   val handleRequest = (request: Request) =>
     parseRequest(request).map { parsedReq =>
@@ -32,5 +32,7 @@ abstract class LeafCapsule[T <: LeafCapsule[T]](implicit hashifier: Hashifier[T]
     } getOrElse Left(request)
 
   def sendResponse(response: Any): Unit = channel.map(_.sendResponse(response))
+
+  def sendMessage(msg: Message): Unit = channel.map(_.sendMessage(msg))
 
 }
