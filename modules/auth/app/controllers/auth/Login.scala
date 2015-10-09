@@ -29,7 +29,7 @@ import higgs.core.result._
  * app authenticated used (thru Facebook)
  */
 @Singleton
-class Login @Inject() (@Named("authService") authService: ActorRef)
+class Login @Inject() (@Named("auth-service") authService: ActorRef)
   extends Controller with AuthJsonCombinators with HttpResponseImplicits {
 
   val log = Logger(this.getClass)
