@@ -6,36 +6,37 @@ import play.api.mvc.WebSocket.FrameFormatter
 
 import neutrino.core.user._
 
-case class Response(reqid: Int, result: JsValue)
-case class Message(userId: UserId, result: JsValue)
+sealed trait Response {
+  def json: JsValue
+}
+
+case class Success(reqid: Int, result: JsValue) extends Response {
+  import Response._
+  def json = Json.toJson(this)
+}
+
+case class Message(userId: UserId, result: JsValue) extends Response {
+  import Response._
+  def json = Json.toJson(this)
+}
+
+case class Failure(error: String, code: Int, message: String) extends Response {
+  import Response._
+  def json = Json.toJson(this)
+}
 
 object Response {
 
   /**
    * Capsule response format
    */
-  implicit val responseFormat: Format[Response] = (
+  implicit val responseFormat: Format[Success] = (
     (__ \ "reqid").format[Int] and
     (__ \ "result").format[JsValue]
   ) ((reqid, result) =>
-    Response(reqid, result),
-    (response: Response) => (response.reqid, response.result)
+    Success(reqid, result),
+    (response: Success) => (response.reqid, response.result)
   )
-
-  /**
-   * Formats WebSocket frames to be Responses.
-   */
-  implicit def responseFrameFormatter: FrameFormatter[Response] = FrameFormatter.jsonFrame.transform(
-    Response => Json.toJson(Response),
-    json => Json.fromJson[Response](json).fold(
-      invalid => throw new RuntimeException("Bad capsule response on WebSocket: " + invalid),
-      valid => valid
-    )
-  )
-
-}
-
-object Message {
 
   /**
    * Message format
@@ -49,14 +50,14 @@ object Message {
   )
 
   /**
-   * Formats WebSocket frames to be Responses.
+   * Error format
    */
-  implicit def messageFrameFormatter: FrameFormatter[Message] = FrameFormatter.jsonFrame.transform(
-    Message => Json.toJson(Message),
-    json => Json.fromJson[Message](json).fold(
-      invalid => throw new RuntimeException("Bad capsule message on WebSocket: " + invalid),
-      valid => valid
-    )
+  implicit val failureFormat: Format[Failure] = (
+    (__ \ "error").format[String] and
+    (__ \ "code").format[Int] and
+    (__ \ "message").format[String]
+  ) ((error, code, message) => Failure(error, code, message),
+    (f: Failure) => (f.error, f.code, f.message)
   )
 
 }

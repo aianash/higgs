@@ -3,7 +3,7 @@ package higgs.core.capsule.channel
 import scala.collection.mutable.Map
 import scala.concurrent.{promise, Promise}
 
-import scalaz._, Scalaz._
+import scalaz.{Success => _, _}, Scalaz._
 
 import play.api.libs.json._
 
@@ -62,16 +62,11 @@ class ManyToOneChannel(hashifier: Hashifier[_], f: Any => Option[JsValue]) exten
       rid <- req2reqid.get(hash)
       js  <- f(response)
       p   <- req2promise.get(hash)
-    } yield {
-      val resp = Response(rid, js)
-      if(!p.isCompleted) p success resp
-    }
+    } yield if(!p.isCompleted) p success Success(rid, js)
   }
 
-  def sendMessage(msg: Message): Unit = {
-    val channelO = userId2channel.get(msg.userId)
-    channelO.map(_.sendMessage(msg))
-  }
+  def sendMessage(msg: Message): Unit =
+    userId2channel.get(msg.userId).map(_.sendMessage(msg))
 
   def registerRequest(parsedReq: Any, reqid: Int): Promise[Response] = {
     val hash = hashFor(parsedReq)

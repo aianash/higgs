@@ -2,7 +2,7 @@ package higgs.core.capsule
 
 import scala.concurrent.Promise
 
-import scalaz._, Scalaz._
+import scalaz.{Success => _, _}, Scalaz._
 
 import play.api.libs.json._
 
@@ -21,13 +21,13 @@ abstract class LeafCapsule[T <: LeafCapsule[T]](implicit hashifier: Hashifier[T]
     parseRequest(request).map { parsedReq =>
       request.reqType match {
         case RequestType.GET =>
-          val p = channel.map(_.registerRequest(parsedReq, request.reqid)).get
+          val p = channel.map(_.registerRequest(parsedReq, request.reqid.get)).get
           processRequest(parsedReq)
           Right(p)
 
         case RequestType.POST =>
           processRequest(parsedReq)
-          Right(Promise.successful(Response(request.reqid, JsNull)))
+          Right(Promise.successful(Success(request.reqid.get, JsNull).asInstanceOf[Response]))
       }
     } getOrElse Left(request)
 

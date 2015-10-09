@@ -1,5 +1,7 @@
 package higgs.core.capsule
 
+import scalaz._, Scalaz._
+
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
 import play.api.mvc.WebSocket.FrameFormatter
@@ -27,7 +29,7 @@ object RequestType {
 
 }
 
-case class Request(reqid: Int, reqType: RequestType, userId: UserId, uri: String, params: JsValue)
+case class Request(reqid: Option[Int], timestamp: Option[Long], reqType: RequestType, uri: String, params: JsValue)
 
 object Request {
 
@@ -40,15 +42,15 @@ object Request {
    * - params : params required to complete the request
    */
   implicit def requestFormat: Format[Request] = (
-    (__ \ "reqid").format[String] and
-    (__ \ "type").format[String] and
-    (__ \ "userid").format[String] and
-    (__ \ "uri").format[String] and
-    (__ \ "params").format[JsValue]
-  ) ((reqid, reqType, userId, uri, params) =>
-    Request(reqid.toInt, RequestType(reqType), UserId(userId.toLong), uri, params),
+    (__ \ "reqid")      .formatNullable[String] and
+    (__ \ "timestamp")  .formatNullable[String] and
+    (__ \ "type")       .format[String] and
+    (__ \ "uri")        .format[String] and
+    (__ \ "params")     .format[JsValue]
+  ) ((reqid, timestamp, reqType, uri, params) =>
+    Request(reqid.map(_.toInt), timestamp.map(_.toLong), RequestType(reqType), uri, params),
     (request: Request) =>
-      (request.reqid.toString, request.reqType.value, request.userId.uuid.toString, request.uri, request.params)
+      (request.reqid.toString.some, request.timestamp.toString.some, request.reqType.value, request.uri, request.params)
   )
 
   /**

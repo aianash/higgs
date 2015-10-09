@@ -9,6 +9,7 @@ import akka.util.Timeout
 
 import play.api.mvc._
 import play.api.Play.current
+import play.api.libs.json._
 
 import javax.inject._
 
@@ -26,7 +27,7 @@ class Application @Inject() (
     authenticate: Authenticate
   ) extends Controller {
 
-  def stream = WebSocket.tryAcceptWithActor[CapsuleRequest, CapsuleResponse] { request =>
+  def stream = WebSocket.tryAcceptWithActor[CapsuleRequest, JsValue] { request =>
     authenticate.verify(request) map { userIdO =>
       userIdO match {
         case Some(userId) => Right((a: ActorRef) => Props(clientConnectionFactory(userId, a)))
