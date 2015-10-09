@@ -1,2 +1,0 @@
-# User REST APIs
-GET         /v1/me                      controllers.user.User.me

@@ -1,2 +1,3 @@
 # OAuth token endpoint
-POST        /v1/oauth/token             controllers.auth.Auth.token
+POST  /v1/oauth/with-facebook   controllers.auth.Login.withFacebook
+POST  /v1/oauth/with-google     controllers.auth.Login.withGoogle

@@ -1,11 +1,6 @@
 # Routes
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
-
+GET    /stream    controllers.Application.stream
 # Include other route files
--> 			/ 			auth.Routes
--> 			/ 			user.Routes
--> 			/ 			search.Routes
--> 			/ 			bucket.Routes
--> 			/ 			shopplan.Routes
--> 			/ 			feed.Routes
+-> 			/			auth.Routes
