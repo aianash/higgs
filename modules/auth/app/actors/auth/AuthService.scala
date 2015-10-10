@@ -154,7 +154,7 @@ class AuthService extends Actor with ActorLogging {
             .setAllowedClockSkewInSeconds(30) // allow some leeway in validating time based claims to account for clock skew
             .setRequireSubject() // the JWT must have a subject claim
             .setExpectedIssuer(issuer) // whom the JWT needs to have been issued by
-            .setExpectedAudience(audience) // to whom the JWT is intended for
+            // .setExpectedAudience(audience) // to whom the JWT is intended for
             .setVerificationKey(publicKey) // verify the signature with the public key
             .build()
 

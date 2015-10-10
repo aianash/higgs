@@ -5,13 +5,17 @@ import scala.concurrent.duration._
 import scala.util.Random
 
 import play.api.libs.json._
+import play.api.libs.functional.syntax._
 
 import akka.actor.{Props, Actor, ActorLogging, Cancellable}
 
 import core.capsule._
+import creed.core.search._, protocols._
+import commons.catalogue._, attributes._
 
 
 class SearchClient(capsule: SearchCapsule) extends Actor with ActorLogging {
+  import SearchClient._
 
   import context.dispatcher
 
@@ -22,38 +26,53 @@ class SearchClient(capsule: SearchCapsule) extends Actor with ActorLogging {
       context.system.scheduler.scheduleOnce(2000 milliseconds) {
         capsule.sendResponse(SearchResult(
           searchId = searchId,
-          result =
-            List(item1, item2, item3, item1, item2, item3,
-                item1, item2, item3, item1, item2, item3,
-                item1, item2, item3, item1, item2, item3,
-                item1, item2, item3, item1, item2, item3)
+          itemScores = Seq.empty[ItemScore],
+          items = Seq.empty[CatalogueItem]
+            // List(item1, item2, item3, item1, item2, item3,
+            //     item1, item2, item3, item1, item2, item3,
+            //     item1, item2, item3, item1, item2, item3,
+            //     item1, item2, item3, item1, item2, item3)
         ), "/search/reasult")
       }
 
 
-    case UpdateQueryFor(searchId) =>
-      if(styleSugg == null || Random.nextBoolean()) {
-        styleSugg.cancel
-        styleSugg =
-          context.system.scheduler.scheduleOnce(1000 milliseconds) {
-            capsule.sendMessage(Message(searchId.userId,
-              "/query/suggestions/styles",
-              Json.obj (
-                "sruid" -> searchId.sruid.toString,
-                "styles" -> Json.arr(
-                  "Tees Top",
-                  "Bodysuit Top",
-                  "Crop Top",
-                  "Tube Top",
-                  "Peplum Top",
-                  "Cowl Top",
-                  "Spaghetti Top"
-                )
-              )
-            ))
-          }
-      }
+    case UpdateQueryFor(searchId, query) =>
+      log.info("Received query update", query)
+      if(styleSugg != null) styleSugg.cancel
+      styleSugg =
+        context.system.scheduler.scheduleOnce(1000 milliseconds) {
+          capsule.sendMessage(Message(searchId.userId,
+            "/query/suggestions/styles",
+            Json.obj("sruid" -> searchId.sruid.toString) ++ Json.toJson(queryRecc).asInstanceOf[JsObject]
+          ))
+        }
   }
+
+}
+
+object SearchClient {
+  import Search._
+
+  def props(capsule: SearchCapsule) = Props(classOf[SearchClient], capsule)
+
+  implicit val QueryRecommendationsWrites: Writes[QueryRecommendations] = (
+    (__ \ "styles").write[Map[String, String]] ~
+    (__ \ "filters").write[Map[String, QueryFilters]]
+  ) { (recommend) =>
+    import recommend._
+    (
+      styles.map(style => style.name -> filters(style).hashCode.toString).toMap,
+      filters.values.map(f => f.hashCode.toString -> f).toMap
+    )
+  }
+
+  import ClothingStyle._
+  val qfilters = QueryFilters(List(ColorFilter(Seq("red", "blue", "green")), SizesFilter(Seq("XS", "2XS", "3XS"))))
+  val qfilters2 = QueryFilters(List(ColorFilter(Seq("pink", "blue", "green")), SizesFilter(Seq("XS", "2XS", "3XS"))))
+  val queryRecc = QueryRecommendations(
+    styles = List(TeesTop, BodysuitTop, CropTop),
+    filters = Map(TeesTop -> qfilters, BodysuitTop -> qfilters2, CropTop -> qfilters)
+  )
 
   val item1 = Json.obj(
     "cuid" -> "199282919",
@@ -162,10 +181,4 @@ We do not offer high discounts in order to sustain high quality standards and de
     "itemTypeGroup" -> "Tops",
     "groups" -> Json.arr("Clothing", "Womens Clothing", "Womens Tops")
   )
-
-}
-
-
-object SearchClient {
-  def props(capsule: SearchCapsule) = Props(classOf[SearchClient], capsule)
 }
