@@ -54,13 +54,19 @@ trait Capsule {
   def +>(another: Capsule)(userId: UserId): Capsule =
     CompositeCapsule(this, another, userId)
 
-  def apply(upstream: ActorRef) = new Process(this, upstream)
+  def apply(upstream: ActorRef) = {
+    channel.foreach {
+      case o: OneToOneChannel => o.upstream(upstream)
+      case _ =>
+    }
+    new Process(this, upstream)
+  }
 
 }
 
 object VoidCapsule extends Capsule {
 
-  val channel = none[Channel]
+  val channel = VoidChannel.some
 
   def handleRequest = (request: Request) =>
     Right(Promise.failed[Response](new Exception("No capsule to handle the request")))

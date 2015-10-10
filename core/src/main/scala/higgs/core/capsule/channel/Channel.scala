@@ -11,6 +11,8 @@ import higgs.core.capsule._
 
 import neutrino.core.user._
 
+import akka.actor.ActorRef
+
 
 trait Channel {
   def parent(parent: OneToOneChannel): Unit
@@ -20,14 +22,25 @@ trait Channel {
   }
 }
 
+case object VoidChannel extends Channel {
+  def parent(parent: OneToOneChannel): Unit = {}
+  def sendMessage(msg: Message): Unit = {}
+}
+
 class OneToOneChannel(val userId: UserId) extends Channel {
 
   private var parentO = none[OneToOneChannel]
+  private var upstreamO = none[ActorRef]
 
   def parent(parent: OneToOneChannel) = this.parentO = parent.some
 
+  def upstream(upstream: ActorRef) = this.upstreamO = upstream.some
+
   def sendMessage(msg: Message): Unit =
-    parentO.foreach(_.sendMessage(msg))
+    parentO match {
+      case Some(p) => p.sendMessage(msg)
+      case None    => upstreamO.foreach(_ ! msg.json)
+      }
 
 }
 
