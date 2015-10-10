@@ -15,6 +15,19 @@ lazy val core = (project in file("core")).disablePlugins(DockerPlugin)
     ) ++ Seq("com.typesafe.play" %% "play-json" % "2.4.3", "com.typesafe.play" %% "play" % "2.4.3")
   )
 
+// lazy val user = (project in file("user")).disablePlugins(DockerPlugin)
+//   .settings(
+//     name := "higgs-user",
+//     libraryDependencies ++= Seq(
+//     ) ++ Seq("com.typesafe.play" %% "play-json" % "2.4.3", "com.typesafe.play" %% "play" % "2.4.3")
+//   ).dependsOn(core)
+
+lazy val search = (project in file("search")).disablePlugins(DockerPlugin)
+  .settings(
+    name := "higgs-search",
+    libraryDependencies ++= Seq()
+  ).dependsOn(core)
+
 lazy val auth = (project in file("modules/auth")).enablePlugins(PlayScala).dependsOn(core)
 
 lazy val root = (project in file("."))
@@ -33,8 +46,8 @@ lazy val root = (project in file("."))
       Cmd("USER", "root")
     )
   )
-  .dependsOn(core, auth)
-  .aggregate(core, auth)
+  .dependsOn(core, auth, search)
+  .aggregate(core, auth, search)
 
 scalacOptions ++= Seq("-feature",  "-language:postfixOps", "-language:reflectiveCalls")
 

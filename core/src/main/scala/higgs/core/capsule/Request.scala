@@ -29,7 +29,7 @@ object RequestType {
 
 }
 
-case class Request(reqid: Option[Int], timestamp: Option[Long], reqType: RequestType, uri: String, params: JsValue)
+case class Request(reqid: Option[Int], timestamp: Option[Long], userId: UserId, reqType: RequestType, uri: String, params: JsValue)
 
 object Request {
 
@@ -48,7 +48,7 @@ object Request {
     (__ \ "uri")        .format[String] and
     (__ \ "params")     .format[JsValue]
   ) ((reqid, timestamp, reqType, uri, params) =>
-    Request(reqid.map(_.toInt), timestamp.map(_.toLong), RequestType(reqType), uri, params),
+    Request(reqid.map(_.toInt), timestamp.map(_.toLong), UserId(-1), RequestType(reqType), uri, params),
     (request: Request) =>
       (request.reqid.toString.some, request.timestamp.toString.some, request.reqType.value, request.uri, request.params)
   )

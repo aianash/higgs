@@ -56,13 +56,13 @@ class ManyToOneChannel(hashifier: Hashifier[_], f: Any => Option[JsValue]) exten
   def parent(channel: OneToOneChannel): Unit =
     userId2channel += (channel.userId -> channel)
 
-  def sendResponse(response: Any): Unit = {
+  def sendResponse(response: Any, responseType: String): Unit = {
     val hash = hashFor(response)
     for {
       rid <- req2reqid.get(hash)
       js  <- f(response)
       p   <- req2promise.get(hash)
-    } yield if(!p.isCompleted) p success Success(rid, js)
+    } yield if(!p.isCompleted) p success Success(rid, responseType, js)
   }
 
   def sendMessage(msg: Message): Unit =
