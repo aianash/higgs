@@ -8,8 +8,8 @@ import com.google.inject.assistedinject.Assisted
 
 import play.api.libs.json._
 
-import higgs.user._
 import higgs.core.capsule._
+import higgs.search.SearchCapsule
 
 import neutrino.core.user._
 
@@ -17,14 +17,12 @@ class ClientConnection @Inject() (@Assisted userId: UserId, @Assisted upstream: 
 
   import context._
 
-  // private var user: UserCapsule = new UserCapsule
+  private var search: SearchCapsule = new SearchCapsule(context.system)
 
-
-  // val process = (VoidCapsule +> VoidCapsule)(UserId(98765456789L))(upstream)
+  val process = (search +> VoidCapsule)(userId)(upstream)
 
   def receive = {
-    // case req: Request => process.process(req)
-
+    case req: Request => process.process(req.copy(userId = userId))
     case _ =>
   }
 

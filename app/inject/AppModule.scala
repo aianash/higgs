@@ -5,13 +5,14 @@ import javax.inject._
 import com.google.inject.name.Names
 
 import akka.actor.{ActorRef, ActorSystem}
+
 import com.google.inject.AbstractModule
+
 import play.api.libs.concurrent.AkkaGuiceSupport
 import play.api._
 
-import higgs.user._
-
 import actors._
+
 
 class AppModule extends AbstractModule with AkkaGuiceSupport {
 
