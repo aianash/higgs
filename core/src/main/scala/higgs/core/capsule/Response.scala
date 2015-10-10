@@ -10,12 +10,12 @@ sealed trait Response {
   def json: JsValue
 }
 
-case class Success(reqid: Int, result: JsValue) extends Response {
+case class Success(reqid: Int, responseType: String, result: JsValue) extends Response {
   import Response._
   def json = Json.toJson(this)
 }
 
-case class Message(userId: UserId, result: JsValue) extends Response {
+case class Message(userId: UserId, messageType: String, result: JsValue) extends Response {
   import Response._
   def json = Json.toJson(this)
 }
@@ -30,34 +30,28 @@ object Response {
   /**
    * Capsule response format
    */
-  implicit val responseFormat: Format[Success] = (
-    (__ \ "reqid").format[Int] and
-    (__ \ "result").format[JsValue]
-  ) ((reqid, result) =>
-    Success(reqid, result),
-    (response: Success) => (response.reqid, response.result)
-  )
+  implicit val responseFormat: Writes[Success] = (
+    (__ \ "reqid").write[Int] and
+    (__ \ "responseType").write[String] and
+    (__ \ "result").write[JsValue]
+  ) ((response: Success) => (response.reqid, response.responseType, response.result))
 
   /**
    * Message format
    */
-  implicit val messageFormat: Format[Message] = (
-    (__ \ "userid").format[Long] and
-    (__ \ "result").format[JsValue]
-  ) ((userId, result) =>
-    Message(UserId(userId), result),
-    (message: Message) => (message.userId.uuid, message.result)
-  )
+  implicit val messageFormat: Writes[Message] = (
+    (__ \ "uuid").write[Long] and
+    (__ \ "messageType").write[String] and
+    (__ \ "result").write[JsValue]
+  ) ((message: Message) => (message.userId.uuid, message.messageType, message.result))
 
   /**
    * Error format
    */
-  implicit val failureFormat: Format[Failure] = (
-    (__ \ "error").format[String] and
-    (__ \ "code").format[Int] and
-    (__ \ "message").format[String]
-  ) ((error, code, message) => Failure(error, code, message),
-    (f: Failure) => (f.error, f.code, f.message)
-  )
+  implicit val failureFormat: Writes[Failure] = (
+    (__ \ "error").write[String] and
+    (__ \ "code").write[Int] and
+    (__ \ "message").write[String]
+  ) ((f: Failure) => (f.error, f.code, f.message))
 
 }

@@ -27,11 +27,11 @@ abstract class LeafCapsule[T <: LeafCapsule[T]](implicit hashifier: Hashifier[T]
 
         case RequestType.POST =>
           processRequest(parsedReq)
-          Right(Promise.successful(Success(request.reqid.get, JsNull).asInstanceOf[Response]))
+          Right(Promise.successful(Success(request.reqid.get, "", JsNull).asInstanceOf[Response]))
       }
     } getOrElse Left(request)
 
-  def sendResponse(response: Any): Unit = channel.map(_.sendResponse(response))
+  def sendResponse(response: Any, responseType: String): Unit = channel.map(_.sendResponse(response, responseType))
 
   def sendMessage(msg: Message): Unit = channel.map(_.sendMessage(msg))
 

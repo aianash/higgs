@@ -1,4 +1,4 @@
-name := "higgs-core"
+name := "higgs-search"
 
 scalaVersion := "2.11.7"
 
