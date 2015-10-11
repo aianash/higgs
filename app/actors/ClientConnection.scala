@@ -13,11 +13,12 @@ import higgs.search.SearchCapsule
 
 import neutrino.core.user._
 
+
 class ClientConnection @Inject() (@Assisted userId: UserId, @Assisted upstream: ActorRef) extends Actor with ActorLogging {
 
   import context._
 
-  private var search: SearchCapsule = new SearchCapsule(context.system)
+  private var search = SearchCapsule(context.system)
 
   val process = (search +> VoidCapsule)(userId)(upstream)
 

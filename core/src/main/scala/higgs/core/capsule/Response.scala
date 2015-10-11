@@ -33,7 +33,7 @@ object Response {
   implicit val responseFormat: Writes[Success] = (
     (__ \ "reqid").write[Int] and
     (__ \ "responseType").write[String] and
-    (__ \ "result").write[JsValue]
+    (__ \ "data").write[JsValue]
   ) ((response: Success) => (response.reqid, response.responseType, response.result))
 
   /**
@@ -42,7 +42,7 @@ object Response {
   implicit val messageFormat: Writes[Message] = (
     (__ \ "uuid").write[Long] and
     (__ \ "messageType").write[String] and
-    (__ \ "result").write[JsValue]
+    (__ \ "data").write[JsValue]
   ) ((message: Message) => (message.userId.uuid, message.messageType, message.result))
 
   /**

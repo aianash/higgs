@@ -1,6 +1,9 @@
 package higgs
 package search
 
+import scala.collection.mutable.{SortedSet => MSortedSet}
+import scala.math.Ordering
+
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
 
@@ -9,9 +12,10 @@ import scalaz._, Scalaz._
 import core.capsule._
 import neutrino.core.user._
 import creed.core.search._, protocols._
-import commons.catalogue.attributes._
+import commons.catalogue._, attributes._, collection._
 
 import akka.actor.ActorSystem
+import akka.serialization._
 
 
 object Search {
@@ -64,7 +68,7 @@ import Search._
 
 class SearchCapsule(system: ActorSystem) extends LeafCapsule[SearchCapsule] {
 
-  val client = system.actorOf(SearchClient.props(this))
+  val client = system.actorOf(SearchClient.props(this), "search-client")
 
   def parseRequest(request: Request) = request match {
     case Request(_, _, userId, RequestType.GET, uri, params : JsObject) =>
@@ -88,13 +92,33 @@ class SearchCapsule(system: ActorSystem) extends LeafCapsule[SearchCapsule] {
   def processRequest(request: Any): Unit = client ! request
 
   def responseToJson(response: Any): Option[JsValue] = response match {
-    case SearchResult(searchId, result, _) =>
+    case SearchResult(searchId, result, scores) =>
+      val scoresM = scores.map(x => x.itemId -> x.score).toMap
+      val ordering = Ordering.by[CatalogueItem, Float](i => scoresM.get(i.itemId) getOrElse -1f).reverse
+
+      val sorted =
+        result.items.foldLeft(MSortedSet.empty[CatalogueItem](ordering)) { (res, item) =>
+          res.add(item)
+          res
+        }
+
       Json.obj(
-        "sruid" -> searchId.sruid.toString
-        // ,
-        // "result" -> result.foldLeft(Json.arr())(_ :+ _.json)
+        "sruid"  -> searchId.sruid.toString,
+        "result" -> sorted.map(_.json)
       ) some
     case _ => none
+  }
+
+}
+
+object SearchCapsule {
+  @volatile private var instance: SearchCapsule = null
+
+  def apply(system: ActorSystem) = {
+    if(instance == null) this.synchronized {
+      if(instance == null) instance = new SearchCapsule(system)
+    }
+    instance
   }
 
 }

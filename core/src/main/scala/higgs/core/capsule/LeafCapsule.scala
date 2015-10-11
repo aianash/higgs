@@ -27,7 +27,7 @@ abstract class LeafCapsule[T <: LeafCapsule[T]](implicit hashifier: Hashifier[T]
 
         case RequestType.POST =>
           processRequest(parsedReq)
-          Right(Promise.successful(Success(request.reqid.get, "", JsNull).asInstanceOf[Response]))
+          Right(Promise.successful(Success(request.reqid.getOrElse(-1), "", JsNull).asInstanceOf[Response]))
       }
     } getOrElse Left(request)
 
