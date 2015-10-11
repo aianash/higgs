@@ -45,7 +45,7 @@ case class InvalidCredentialsException(message: String) extends Exception
 sealed trait AuthServiceProtocol
 case class VerifyAndGetTokenFor(authInfo: SocialAuthInfo) extends AuthServiceProtocol with Replyable[JsonResult]
 case class VerifyTokenAndGetUser(token: String) extends AuthServiceProtocol with Replyable[UserId]
-
+case object GetTokenForGuestUser extends AuthServiceProtocol with Replyable[JsonResult]
 
 /**
  * This actor is used for authentication related tasks like
@@ -87,6 +87,10 @@ class AuthService extends Actor with ActorLogging {
                         ex.getMessage)
           sender() ! akka.actor.Status.Failure(ex)
       }
+
+    case GetTokenForGuestUser =>
+      implicit val timeout = Timeout(2 seconds)
+      (auth ?= CreateGuestUser).map(createResponse(_)) pipeTo sender()
 
   }
 

@@ -8,7 +8,6 @@ import com.google.inject.assistedinject.Assisted
 
 import play.api.libs.json._
 
-import higgs.user._
 import higgs.core.capsule._
 
 import neutrino.core.user._
