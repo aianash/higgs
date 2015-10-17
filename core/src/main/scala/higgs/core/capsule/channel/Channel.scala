@@ -17,9 +17,8 @@ import akka.actor.ActorRef
 trait Channel {
   def parent(parent: OneToOneChannel): Unit
   def sendMessage(msg: Message): Unit
-  def +(another: Channel)(userId: UserId): Channel = {
+  def +(another: Channel)(userId: UserId): Channel =
     OneToOneChannel(userId).merging(this, another)
-  }
 }
 
 case object VoidChannel extends Channel {
@@ -40,7 +39,7 @@ class OneToOneChannel(val userId: UserId) extends Channel {
     parentO match {
       case Some(p) => p.sendMessage(msg)
       case None    => upstreamO.foreach(_ ! msg.json)
-      }
+    }
 
 }
 

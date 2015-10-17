@@ -11,7 +11,7 @@ import akka.actor.{Props, Actor, ActorLogging, Cancellable}
 import akka.routing.FromConfig
 
 import core.capsule._
-import creed.core.search._, protocols._
+import creed.client.search._, protocols._
 import commons.catalogue._, attributes._, collection._
 import neutrino.core.user.UserId
 
@@ -24,10 +24,16 @@ class SearchClient(capsule: SearchCapsule) extends Actor with ActorLogging {
   val search = context.actorOf(FromConfig.props(), name = "search-service-router")
 
   def receive = {
-    case req : GetSearchResultFor => search ! req
-    case req : UpdateQueryFor => search ! req
-    case res : SearchResult => capsule.sendResponse(res, "/search/result")
-    case msg @ QueryRecommendationsFor(searchId, reco) =>
+    case req : GetSearchResultFor => log.info(s"Received GetSearchResultFor for ${req.searchId}")
+      search ! req
+
+    case req : UpdateQueryFor => log.info(s"Received UpdateQueryFor for ${req.searchId}")
+      search ! req
+
+    case res : SearchResult => log.info(s"Sending search result for ${res.searchId}")
+      capsule.sendResponse(res, "/search/result")
+
+    case msg @ QueryRecommendationsFor(searchId, reco) => log.info(s"Sending query recommendations for $searchId")
       capsule.sendMessage(
         Message(
           searchId.userId,

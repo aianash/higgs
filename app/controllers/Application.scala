@@ -2,6 +2,7 @@ package controllers
 
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.util.control.NonFatal
 
 import akka.actor.{ActorRef, Props}
 import akka.pattern.ask
@@ -10,6 +11,7 @@ import akka.util.Timeout
 import play.api.mvc._
 import play.api.Play.current
 import play.api.libs.json._
+import play.api.Logger
 
 import javax.inject._
 
@@ -27,11 +29,22 @@ class Application @Inject() (
     authenticate: Authenticate
   ) extends Controller {
 
+  val logger = Logger(getClass)
+
   def stream = WebSocket.tryAcceptWithActor[CapsuleRequest, JsValue] { request =>
+    logger.debug(s"Received request $request")
     authenticate.verify(request) map { userIdO =>
       userIdO match {
-        case Some(userId) => Right((a: ActorRef) => Props(clientConnectionFactory(userId, a)))
-        case None         => Left(Forbidden)
+        case Some(userId) =>
+          try Right((a: ActorRef) => Props(clientConnectionFactory(userId, a)))
+          catch {
+            case NonFatal(ex) =>
+              logger.error(s"Error while creating client connection actor for request $request", ex)
+              Left(InternalServerError)
+          }
+        case None =>
+          logger.warn(s"Unauthorized request received $request")
+          Left(Forbidden)
       }
     }
   }

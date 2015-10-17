@@ -1,15 +1,19 @@
 package higgs.core.capsule
 
 import scala.concurrent.Promise
+import scala.util.control.NonFatal
 
 import scalaz.{Success => _, _}, Scalaz._
 
 import play.api.libs.json._
+import play.api.Logger
 
 import higgs.core.capsule.channel._
 
 
 abstract class LeafCapsule[T <: LeafCapsule[T]](implicit hashifier: Hashifier[T]) extends Capsule {
+
+  private val logger = Logger(getClass)
 
   def parseRequest(request: Request): Option[Any]
   def processRequest(request: Any): Unit
@@ -31,8 +35,18 @@ abstract class LeafCapsule[T <: LeafCapsule[T]](implicit hashifier: Hashifier[T]
       }
     } getOrElse Left(request)
 
-  def sendResponse(response: Any, responseType: String): Unit = channel.map(_.sendResponse(response, responseType))
+  def sendResponse(response: Any, responseType: String): Unit =
+    try channel.map(_.sendResponse(response, responseType))
+    catch {
+      case NonFatal(ex) =>
+        logger.error("Error occured while sending response", ex)
+    }
 
-  def sendMessage(msg: Message): Unit = channel.map(_.sendMessage(msg))
+  def sendMessage(msg: Message): Unit =
+    try channel.map(_.sendMessage(msg))
+    catch {
+      case NonFatal(ex) =>
+        logger.error("Error occured while sending message", ex)
+    }
 
 }

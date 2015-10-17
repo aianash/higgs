@@ -1,9 +1,9 @@
+import com.goshoplane.sbt.standard.libraries.StandardLibraries._
+
 name := "higgs-core"
 
-scalaVersion := "2.11.7"
+scalaVersion := Version.scala
 
 libraryDependencies ++= Seq(
-  "com.typesafe.akka" %% "akka-slf4j" % "2.3.6",
-  "com.typesafe.akka" %% "akka-actor" % "2.3.6",
-  "com.goshoplane"    %% "neutrino-core" % "0.0.1"
-)
+  "com.goshoplane" %% "neutrino-core" % "0.0.1"
+) ++ Libs.akka

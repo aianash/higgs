@@ -11,6 +11,7 @@
 			<pattern>%date - %coloredLevel %logger{15} - %message%n%xException{5}</pattern>
 		</encoder>
 	</appender>
+	<logger name="akka" level="INFO" />
 	<logger name="play" level="INFO" />
 	<logger name="application" level="INFO" />
 	<root level="ERROR">

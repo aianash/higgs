@@ -44,7 +44,7 @@ class Login @Inject() (@Named("auth-service") authService: ActorRef)
    */
   def withFacebook = Action.async(parse.json[FBAuthInfo]) { implicit request =>
     val authInfo = request.body
-    implicit val timeout = Timeout(2 seconds)
+    implicit val timeout = Timeout(5 seconds)
 
     (authService ?= VerifyAndGetTokenFor(authInfo)).toHttpResponse
   }

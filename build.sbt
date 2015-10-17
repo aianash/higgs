@@ -2,30 +2,25 @@ import com.typesafe.sbt.packager.archetypes.JavaAppPackaging
 
 import com.typesafe.sbt.packager.docker.{Cmd, ExecCmd, CmdLike}
 
+import com.goshoplane.sbt.standard.libraries.StandardLibraries._
+
 name := """higgs"""
 
 version := "0.0.1"
 
-scalaVersion := "2.11.7"
+scalaVersion := Version.scala
 
 lazy val core = (project in file("core")).disablePlugins(DockerPlugin)
   .settings(
     name := "higgs-core",
     libraryDependencies ++= Seq(
-    ) ++ Seq("com.typesafe.play" %% "play-json" % "2.4.3", "com.typesafe.play" %% "play" % "2.4.3")
+      "com.typesafe.play" %% "play" % Version.play
+    ) ++ Libs.playJson
   )
-
-// lazy val user = (project in file("user")).disablePlugins(DockerPlugin)
-//   .settings(
-//     name := "higgs-user",
-//     libraryDependencies ++= Seq(
-//     ) ++ Seq("com.typesafe.play" %% "play-json" % "2.4.3", "com.typesafe.play" %% "play" % "2.4.3")
-//   ).dependsOn(core)
 
 lazy val search = (project in file("search")).disablePlugins(DockerPlugin)
   .settings(
-    name := "higgs-search",
-    libraryDependencies ++= Seq()
+    name := "higgs-search"
   ).dependsOn(core)
 
 lazy val auth = (project in file("modules/auth")).enablePlugins(PlayScala).dependsOn(core)
@@ -35,8 +30,7 @@ lazy val root = (project in file("."))
   .enablePlugins(PlayScala)
   .settings(
     libraryDependencies ++= Seq(
-    "com.typesafe.akka" %% "akka-cluster" % "2.3.12"
-    ),
+    ) ++ Libs.akka ++ Libs.microservice,
     dockerExposedPorts := Seq(9000),
     // TODO: remove echo statement once verified
     dockerEntrypoint := Seq("sh", "-c", "export HIGGS_HOST=`/sbin/ifconfig eth0 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1 }'` && echo $HIGGS_HOST && bin/higgs $*"),
