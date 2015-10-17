@@ -11,7 +11,7 @@ import scalaz._, Scalaz._
 
 import core.capsule._
 import neutrino.core.user._
-import creed.core.search._, protocols._
+import creed.client.search._, protocols._
 import commons.catalogue._, attributes._, collection._
 
 import akka.actor.ActorSystem
@@ -25,14 +25,14 @@ object Search {
     (__ \ "sizes").formatNullable[Seq[String]]
   ) ({ (colorsO, sizesO) =>
       QueryFilters(List(
-        colorsO.map(ColorFilter(_)),
-        sizesO.map(SizesFilter(_))
-      ).flatten)
+        colorsO.map(ColorFilter(_:_*)),
+        sizesO.map(sizes => SizesFilter(sizes.map(ClothingSize(_)):_*))
+      ).flatten:_*)
     },
     { (qf: QueryFilters) =>
       import qf._
       (filter[ColorFilter].map(_.colors),
-       filter[SizesFilter].map(_.sizes))
+       filter[SizesFilter].map(_.sizes.map(_.name)))
     })
 
   implicit val queryRead: Reads[Query] = (
@@ -87,6 +87,7 @@ class SearchCapsule(system: ActorSystem) extends LeafCapsule[SearchCapsule] {
             query    = (params \ "query").as[Query]).some
         case _ => none
       }
+    case _ => none
   }
 
   def processRequest(request: Any): Unit = client ! request

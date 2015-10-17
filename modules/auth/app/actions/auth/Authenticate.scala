@@ -41,7 +41,7 @@ class Authenticate @Inject() (@Named("auth-service") authService: ActorRef) {
     (for {
       token <- request.queryString.get("accessToken").flatMap(_.headOption)
     } yield {
-      implicit val timeout = Timeout(1 seconds) // [TO DO] set a proper value, this is too much
+      implicit val timeout = Timeout(5 seconds) // [TO DO] set a proper value, this is too much
                                                 // should never reach this much
       val userIdF = authService ?= VerifyTokenAndGetUser(token)
       userIdF.map(_.some) recover {

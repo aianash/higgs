@@ -1,10 +1,11 @@
+import com.goshoplane.sbt.standard.libraries.StandardLibraries._
+
 name := "higgs-search"
 
-scalaVersion := "2.11.7"
+scalaVersion := Version.scala
 
 libraryDependencies ++= Seq(
-  "com.typesafe.akka" %% "akka-slf4j" % "2.3.6",
-  "com.typesafe.akka" %% "akka-actor" % "2.3.6",
-  "com.goshoplane"    %% "neutrino-core" % "0.0.1",
-  "com.goshoplane" %% "creed-core" % "1.0.0"
-)
+  "com.goshoplane" %% "neutrino-core" % "0.0.1",
+  "com.goshoplane" %% "creed-client" % "1.0.0",
+  "com.goshoplane" %% "commons-owner" % "0.1.0"
+) ++ Libs.akka

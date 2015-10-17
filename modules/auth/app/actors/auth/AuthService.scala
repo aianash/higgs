@@ -69,7 +69,7 @@ class AuthService extends Actor with ActorLogging {
      * - Send back the token
      */
     case VerifyAndGetTokenFor(authInfo) =>
-      implicit val timeout = Timeout(2 seconds)
+      implicit val timeout = Timeout(5 seconds)
       (auth ?= AuthenticateUser(authInfo, None)).map(createResponse(_)) pipeTo sender()
 
     /**
