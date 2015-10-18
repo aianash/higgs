@@ -31,19 +31,19 @@ object Response {
    * Capsule response format
    */
   implicit val responseFormat: Writes[Success] = (
-    (__ \ "reqid").write[Int] and
+    (__ \ "reqid").write[String] and
     (__ \ "responseType").write[String] and
     (__ \ "data").write[JsValue]
-  ) ((response: Success) => (response.reqid, response.responseType, response.result))
+  ) ((response: Success) => (response.reqid.toString, response.responseType, response.result))
 
   /**
    * Message format
    */
   implicit val messageFormat: Writes[Message] = (
-    (__ \ "uuid").write[Long] and
+    (__ \ "uuid").write[String] and
     (__ \ "messageType").write[String] and
     (__ \ "data").write[JsValue]
-  ) ((message: Message) => (message.userId.uuid, message.messageType, message.result))
+  ) ((message: Message) => (message.userId.uuid.toString, message.messageType, message.result))
 
   /**
    * Error format

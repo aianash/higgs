@@ -31,7 +31,7 @@ class ClientConnection @Inject() (@Assisted userId: UserId, @Assisted upstream: 
     case req: Request =>
       try process.process(req.copy(userId = userId))
       catch {
-        case NonFatal(ex) => log.error(s"Exception while processing the request $req", ex)
+        case NonFatal(ex) => log.error(ex, s"Exception while processing the request $req")
       }
     case _ =>
   }

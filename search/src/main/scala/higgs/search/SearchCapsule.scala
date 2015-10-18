@@ -21,17 +21,19 @@ import akka.serialization._
 object Search {
 
   implicit val queryFilterReads: Format[QueryFilters] = (
+    (__ \ "filterTitle").format[String] ~
     (__ \ "colors").formatNullable[Seq[String]] ~
     (__ \ "sizes").formatNullable[Seq[String]]
-  ) ({ (colorsO, sizesO) =>
-      QueryFilters(List(
+  ) ({ (title, colorsO, sizesO) =>
+      QueryFilters(title, List(
         colorsO.map(ColorFilter(_:_*)),
         sizesO.map(sizes => SizesFilter(sizes.map(ClothingSize(_)):_*))
       ).flatten:_*)
     },
     { (qf: QueryFilters) =>
       import qf._
-      (filter[ColorFilter].map(_.colors),
+      (title,
+       filter[ColorFilter].map(_.colors),
        filter[SizesFilter].map(_.sizes.map(_.name)))
     })
 
